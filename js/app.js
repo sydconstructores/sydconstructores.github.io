@@ -56,6 +56,16 @@ window.addEventListener('appinstalled', () => {
 
 // SERVICE WORKER & UPDATES
 const APP_VERSION = 'Beta 1.0.1';
+
+// Auto-fill all version placeholders
+function fillVersionBadges() {
+    document.getElementById('versionBadge').textContent = APP_VERSION;
+    document.querySelectorAll('.version-auto').forEach(el => {
+        el.textContent = APP_VERSION;
+    });
+}
+document.addEventListener('DOMContentLoaded', fillVersionBadges);
+
 let newWorker;
 
 if ('serviceWorker' in navigator) {
@@ -1182,7 +1192,7 @@ function launchApp() {
     if(btnBack) btnBack.style.display = session.role==='client' ? 'none' : 'block';
 
     // Subtitle with real obra name + Version
-    const version = 'Beta 1.0.1';
+    const version = APP_VERSION;
     document.getElementById('appSubtitle').textContent = (currentObra.name || 'Proyecto') + (currentObra.location ? ' · ' + currentObra.location : '') + ' (' + version + ')';
 
     // Generador de reporte visibility
