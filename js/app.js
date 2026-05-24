@@ -64,7 +64,8 @@ function fillVersionBadges() {
         el.textContent = APP_VERSION;
     });
 }
-document.addEventListener('DOMContentLoaded', fillVersionBadges);
+// Run immediately since script loads after DOM
+fillVersionBadges();
 
 let newWorker;
 
