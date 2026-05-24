@@ -55,7 +55,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.10';
+const APP_VERSION = 'Beta 1.0.11';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -2146,7 +2146,6 @@ async function showReportHistory() {
     try {
         const snap = await db.collection('informes_compartidos')
             .where('obra', '==', obraId)
-            .orderBy('creado', 'desc')
             .get();
         
         const list = document.getElementById('historyList');
@@ -2155,8 +2154,16 @@ async function showReportHistory() {
             return;
         }
         
+        let docs = [];
+        snap.forEach(doc => docs.push(doc));
+        docs.sort((a, b) => {
+            const timeA = a.data().creado ? a.data().creado.toDate().getTime() : 0;
+            const timeB = b.data().creado ? b.data().creado.toDate().getTime() : 0;
+            return timeB - timeA;
+        });
+        
         let html = '';
-        snap.forEach(doc => {
+        docs.forEach(doc => {
             const data = doc.data();
             const date = data.creado ? data.creado.toDate().toLocaleDateString('es-MX', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'}) : 'Sin fecha';
             const baseUrl = window.location.href.split('?')[0].replace('index.html', '');
@@ -2660,7 +2667,6 @@ window.cargarHistorialReportes = async function() {
     try {
         const snap = await db.collection('informes_compartidos')
             .where('obra', '==', session.obra)
-            .orderBy('creado', 'desc')
             .get();
             
         if(snap.empty) {
@@ -2668,8 +2674,16 @@ window.cargarHistorialReportes = async function() {
             return;
         }
         
+        let docs = [];
+        snap.forEach(doc => docs.push(doc));
+        docs.sort((a, b) => {
+            const timeA = a.data().creado ? a.data().creado.toDate().getTime() : 0;
+            const timeB = b.data().creado ? b.data().creado.toDate().getTime() : 0;
+            return timeB - timeA;
+        });
+        
         let html = '';
-        snap.forEach(doc => {
+        docs.forEach(doc => {
             const data = doc.data();
             const dateStr = data.creado ? data.creado.toDate().toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'}) : 'Reciente';
             
