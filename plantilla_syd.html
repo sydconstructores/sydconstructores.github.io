@@ -17,9 +17,16 @@
             color: #1e293b;
             line-height: 1.6;
             margin: 0;
-            padding: 0;
+            padding: 30px 45px; /* Margen elegante en pantalla para que no toque los bordes */
             background-color: #ffffff;
             position: relative;
+        }
+
+        /* En impresión cancelamos el padding para usar los márgenes nativos de @page */
+        @media print {
+            body {
+                padding: 0 !important;
+            }
         }
 
         /* Marca de agua (Watermark) */
@@ -204,7 +211,7 @@
             </tr>
         </table>
         
-        <table style="width:100%; border-collapse:collapse; font-size:10pt; margin-top:20px; border-top: 1px solid var(--syd-gris-borde); padding-top: 15px; display: block;">
+        <table style="width:100%; border-collapse:collapse; font-size:10pt; margin-top:20px; border-top: 1px solid var(--syd-gris-borde); padding-top: 15px; display: table;">
             <tr>
                 <td style="width:50%; vertical-align:top; text-align:left;">
                     <span style="font-weight:800; color:var(--syd-beige); text-transform:uppercase; font-size:8.5pt;">FECHA DE EMISIÓN</span><br>
