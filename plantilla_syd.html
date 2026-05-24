@@ -3,55 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <title>Reporte Semanal de Obra - SYD Constructores</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         /* Configuración de la página para PDF */
         @page {
-            size: letter; /* Formato carta estándar */
+            size: letter;
             margin: 15mm 20mm;
-            @bottom-center {
-                content: "Página " counter(page) " de " counter(pages);
-                font-family: Arial, sans-serif;
-                font-size: 8pt;
-                color: #666666;
-            }
         }
 
         /* Estilos base */
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            color: #231F20;
-            line-height: 1.5;
+            font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #1e293b;
+            line-height: 1.6;
             margin: 0;
             padding: 0;
             background-color: #ffffff;
+            position: relative;
         }
 
-        /* Paleta de colores de SYD */
+        /* Marca de agua (Watermark) */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('https://sydconstructores.github.io/syd-beta/assets/logo_syd.png') no-repeat center center;
+            background-size: 60%;
+            opacity: 0.04;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Paleta de colores de SYD Premium */
         :root {
-            --syd-rojo: #D8262C;
-            --syd-beige: #B59A76;
-            --syd-oscuro: #231F20;
-            --syd-gris-claro: #F4F4F4;
+            --syd-rojo: #dc2626;
+            --syd-beige: #d97706;
+            --syd-oscuro: #0f172a;
+            --syd-gris-claro: #f8fafc;
+            --syd-gris-borde: #e2e8f0;
         }
 
-        /* Encabezado compacto */
+        /* Encabezado elegante */
         .report-header {
             width: 100%;
-            border-bottom: 3px solid #D8262C;
-            padding-bottom: 15px;
-            margin-bottom: 25px;
+            border-bottom: 4px solid var(--syd-oscuro);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
             display: table;
         }
 
         .header-logo {
             display: table-cell;
             vertical-align: middle;
-            width: 25%;
+            width: 30%;
         }
 
-        /* Control del tamaño del logo */
         .header-logo img {
-            max-width: 140px; 
+            max-width: 160px; 
             height: auto;
             display: block;
         }
@@ -59,102 +67,90 @@
         .header-info {
             display: table-cell;
             vertical-align: middle;
-            width: 75%;
-        }
-
-        .info-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 9pt;
-        }
-
-        .info-table td {
-            padding: 3px 8px;
-        }
-
-        .info-label {
-            font-weight: bold;
-            color: #B59A76;
+            width: 70%;
             text-align: right;
-            width: 15%;
-            text-transform: uppercase;
-        }
-
-        .info-value {
-            color: #231F20;
-            width: 35%;
-            border-bottom: 1px solid #eeeeee;
         }
 
         /* Título Principal */
         .main-title {
-            font-size: 16pt;
-            color: #231F20;
+            font-size: 20pt;
+            font-weight: 800;
+            color: var(--syd-oscuro);
             text-align: center;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 0 0 25px 0;
+            letter-spacing: 0.05em;
+            margin: 0 0 35px 0;
+            border-bottom: 2px dashed var(--syd-gris-borde);
+            padding-bottom: 15px;
         }
 
         /* Secciones del contenido */
         .section {
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             page-break-inside: avoid;
         }
 
         .section-title {
-            font-size: 12pt;
+            font-size: 13pt;
+            font-weight: 800;
             color: #ffffff;
-            background-color: #231F20;
-            padding: 5px 10px;
-            margin: 0 0 10px 0;
-            border-left: 5px solid #D8262C;
+            background: linear-gradient(90deg, var(--syd-oscuro), #334155);
+            padding: 8px 15px;
+            margin: 0 0 15px 0;
+            border-left: 6px solid var(--syd-rojo);
             text-transform: uppercase;
+            border-radius: 4px;
+            letter-spacing: 0.03em;
         }
 
         .section-content {
-            font-size: 10pt;
-            padding: 10px;
-            background-color: #F4F4F4;
-            border: 1px solid #e0e0e0;
+            font-size: 10.5pt;
+            padding: 15px;
+            background-color: rgba(248, 250, 252, 0.8);
+            border: 1px solid var(--syd-gris-borde);
+            border-radius: 6px;
         }
 
         .section-content ul {
             margin: 0;
-            padding-left: 20px;
+            padding-left: 25px;
         }
 
         .section-content li {
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            color: #334155;
         }
 
-        /* Cuadrícula de fotos fotográfica compatible con conversores PDF antiguos */
+        /* Cuadrícula de fotos fotográfica */
         .photo-grid {
             width: 100%;
             text-align: center;
-            margin-top: 15px;
+            margin-top: 20px;
         }
 
         .photo-item {
             display: inline-block;
-            width: 45%;
-            margin: 0 2% 20px 2%;
+            width: 46%;
+            margin: 0 1.5% 25px 1.5%;
             vertical-align: top;
             background-color: #ffffff;
-            border: 1px solid #cccccc;
-            padding: 5px;
+            border: 1px solid var(--syd-gris-borde);
+            border-radius: 8px;
+            padding: 6px;
             box-sizing: border-box;
             page-break-inside: avoid;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
         .photo-image-container {
-            height: 200px;
-            background-color: #eeeeee;
+            height: 220px;
+            background-color: #f1f5f9;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            border-radius: 4px;
         }
 
         .photo-image-container img {
@@ -164,47 +160,79 @@
         }
 
         .photo-caption {
-            font-size: 8pt;
-            color: #666666;
+            font-size: 9pt;
+            font-weight: 600;
+            color: #475569;
             margin: 0;
             text-align: left;
-            border-top: 1px dashed #cccccc;
-            padding-top: 5px;
+            border-top: 1px solid var(--syd-gris-borde);
+            padding-top: 8px;
         }
 
-        /* Pie de página estático */
+        /* Pie de página enriquecido */
         .footer-static {
-            margin-top: 40px;
-            border-top: 1px solid #B59A76;
-            padding-top: 10px;
+            margin-top: 50px;
+            border-top: 2px solid var(--syd-beige);
+            padding-top: 15px;
             text-align: center;
-            font-size: 8pt;
-            color: #666666;
+            font-size: 8.5pt;
+            color: #64748b;
+            line-height: 1.8;
+            page-break-inside: avoid;
         }
-     .header-logo, .header-info { display: block; width: 100%; text-align: center; } .header-logo img { margin: 0 auto 15px auto; max-width: 120px; } .info-table td { display: block; width: 100% !important; text-align: center; padding: 2px; } .info-label { margin-top: 5px; color: #B59A76; } .info-value { margin-bottom: 5px; } .info-table tr { display: block; margin-bottom: 5px; } }
-[contenteditable="true"] { border: 1px dashed rgba(0,0,0,0.15); border-radius: 4px; padding: 4px; transition: all 0.2s; cursor: text; } [contenteditable="true"]:hover { background-color: rgba(255,255,0,0.1); border-color: rgba(0,0,0,0.3); } [contenteditable="true"]:focus { background-color: rgba(255,255,0,0.15); border-color: #2563eb; outline: none; }
-</style>
+
+        [contenteditable="true"] { border: 1px dashed rgba(0,0,0,0.15); border-radius: 4px; padding: 4px; transition: all 0.2s; cursor: text; }
+        [contenteditable="true"]:hover { background-color: rgba(245,158,11,0.05); border-color: rgba(0,0,0,0.3); }
+        [contenteditable="true"]:focus { background-color: rgba(245,158,11,0.1); border-color: var(--syd-beige); outline: none; }
+    </style>
 </head>
 <body>
 
     <!-- Encabezado con logo y datos -->
-    <div class="report-header" style="border-bottom: 3px solid #D8262C; padding-bottom: 15px; margin-bottom: 25px;"> <table style="width:100%; border-collapse:collapse; font-size:10pt;"> <tr> <td style="width:35%; vertical-align:middle; text-align:left;"> <img src="https://manelv74-creator.github.io/syd-constructores/assets/logo_syd.png" alt="Logo SYD Constructores" style="max-width:120px;"> </td> <td style="width:65%; vertical-align:middle; text-align:right;"> <div style="display:inline-block; text-align:center;"> <span style="font-weight:bold; color:#B59A76; text-transform:uppercase;">Proyecto:</span><br> <span style="font-weight:bold; font-size:12pt; color:#231F20;">{{proyecto_nombre}}</span> </div> </td> </tr> </table> <table style="width:100%; border-collapse:collapse; font-size:10pt; margin-top:15px;"> <tr> <td style="width:50%; vertical-align:top; text-align:left;"> <span style="font-weight:bold; color:#B59A76; text-transform:uppercase;">Generado:</span><br> <span style="color:#231F20;">{{fecha_informe}}</span> </td> <td style="width:50%; vertical-align:top; text-align:right;"> <table style="display:inline-table; text-align:left;"> <tr> <td style="font-weight:bold; color:#B59A76; text-transform:uppercase; padding-right:5px; vertical-align:top;">Periodo:</td> <td style="color:#231F20;">{{periodo_semana}}</td> </tr> </table> </td> </tr> </table> </div>
+    <div class="report-header">
+        <table style="width:100%; border-collapse:collapse; font-size:10.5pt;">
+            <tr>
+                <td class="header-logo">
+                    <img src="https://sydconstructores.github.io/syd-beta/assets/logo_syd.png" alt="Logo SYD Constructores">
+                </td>
+                <td class="header-info">
+                    <div style="display:inline-block; text-align:right;">
+                        <span style="font-weight:800; color:var(--syd-beige); text-transform:uppercase; font-size:9pt; letter-spacing:0.1em;">PROYECTO</span><br>
+                        <span style="font-weight:800; font-size:16pt; color:var(--syd-oscuro);">{{proyecto_nombre}}</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        
+        <table style="width:100%; border-collapse:collapse; font-size:10pt; margin-top:20px; border-top: 1px solid var(--syd-gris-borde); padding-top: 15px; display: block;">
+            <tr>
+                <td style="width:50%; vertical-align:top; text-align:left;">
+                    <span style="font-weight:800; color:var(--syd-beige); text-transform:uppercase; font-size:8.5pt;">FECHA DE EMISIÓN</span><br>
+                    <span style="color:#334155; font-weight:600;">{{fecha_informe}}</span>
+                </td>
+                <td style="width:50%; vertical-align:top; text-align:right;">
+                    <span style="font-weight:800; color:var(--syd-beige); text-transform:uppercase; font-size:8.5pt;">PERIODO REPORTADO</span><br>
+                    <span style="color:#334155; font-weight:600;">{{periodo_semana}}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
 
     <!-- Título del documento -->
     <h1 class="main-title">Reporte Semanal de Avance</h1>
 
     <!-- Sección 1: Resumen -->
     <div class="section">
-        <h2 class="section-title">1. Resumen de Actividades</h2>
-        <div class="section-content" id="edit_resumen" contenteditable="true" style="outline:none;"><p>{{resumen_ejecutivo}}</p>
-            <!-- Ejemplo de texto por defecto si la variable está vacía -->
-            <p><em>En este periodo se ejecutaron las tareas programadas según el calendario de obra...</em></p>
+        <h2 class="section-title">1. Resumen Ejecutivo</h2>
+        <div class="section-content" id="edit_resumen" contenteditable="true" style="outline:none;">
+            <p>{{resumen_ejecutivo}}</p>
+            <p style="color: #94a3b8; font-style: italic;">(El resumen ejecutivo detalla el panorama general de los trabajos de esta semana...)</p>
         </div>
     </div>
 
     <!-- Sección 2: Trabajos Realizados -->
     <div class="section">
-        <h2 class="section-title">2. Descripción de Trabajos Realizados</h2>
+        <h2 class="section-title">2. Trabajos Realizados</h2>
         <div class="section-content">
             <ul id="edit_trabajos">
                 {{lista_trabajos}}
@@ -222,7 +250,7 @@
 
     <!-- Sección 4: Avance por Área -->
     <div class="section">
-        <h2 class="section-title">4. Avance de Obra por Área</h2>
+        <h2 class="section-title">4. Avance por Zonas</h2>
         <div class="section-content">
             <ul id="edit_avances_zona">
                 {{avance_zonas}}
@@ -230,9 +258,11 @@
         </div>
     </div>
 
-    <!-- Pie de página -->
+    <!-- Pie de página Enriquecido -->
     <div class="footer-static">
-        SYD Constructores | www.sydconstructores.com.mx | Zapopan, Jalisco
+        <strong style="color:var(--syd-oscuro); font-size:9.5pt;">SYD CONSTRUCTORES S.A. DE C.V.</strong><br>
+        📍 Arauca 182, Zapopan, Jalisco &nbsp; | &nbsp; 📞 +52 (33) 1234-5678 &nbsp; | &nbsp; ✉️ contacto@sydconstructores.com.mx <br>
+        <span style="color:var(--syd-rojo); font-weight:600;">www.sydconstructores.com.mx</span>
     </div>
 
 </body>
