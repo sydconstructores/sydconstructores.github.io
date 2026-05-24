@@ -55,7 +55,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.8';
+const APP_VERSION = 'Beta 1.0.9';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -2646,6 +2646,8 @@ window.togglePasswordVisibility = function(inputId, btn) {
 
 
 
+
+
 // Cargar Historial de Reportes
 window.cargarHistorialReportes = async function() {
     const listWrap = document.getElementById('historialReportesList');
@@ -2661,7 +2663,7 @@ window.cargarHistorialReportes = async function() {
             .get();
             
         if(snap.empty) {
-            listWrap.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted); font-size:0.85rem;">No hay reportes publicados an.</div>';
+            listWrap.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted); font-size:0.85rem;">No hay reportes publicados aún.</div>';
             return;
         }
         
@@ -2670,20 +2672,20 @@ window.cargarHistorialReportes = async function() {
             const data = doc.data();
             const dateStr = data.creado ? data.creado.toDate().toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'}) : 'Reciente';
             
-            html += <div class="zone-card" onclick="verReporteOficial('')" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+            html += `<div class="zone-card" onclick="verReporteOficial('${doc.id}')" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
                 <div>
-                    <div style="font-weight:700; color:var(--accent);">Reporte Semana </div>
-                    <div style="font-size:0.7rem; color:var(--muted); margin-top:4px;">Publicado: </div>
+                    <div style="font-weight:700; color:var(--accent);">Reporte Semana ${data.semana}</div>
+                    <div style="font-size:0.7rem; color:var(--muted); margin-top:4px;">Publicado: ${dateStr}</div>
                 </div>
-                <div style="color:var(--accent2);">&#x1F4D1; Ver</div>
-            </div>;
+                <div style="color:var(--accent2);">📑 Ver</div>
+            </div>`;
         });
         
         listWrap.innerHTML = html;
-        window._informesSnapshot = snap; // Cache for opening
+        window._informesSnapshot = snap;
     } catch(e) {
         console.error('Error cargando reportes:', e);
-        listWrap.innerHTML = '<div style="text-align:center; padding:20px; color:var(--syd-rojo); font-size:0.85rem;">Error al cargar reportes.</div>';
+        listWrap.innerHTML = '<div style="text-align:center; padding:20px; color:#dc2626; font-size:0.85rem;">Error al cargar reportes.</div>';
     }
 };
 
@@ -2694,7 +2696,6 @@ window.verReporteOficial = function(docId) {
     
     const htmlContent = doc.data().html;
     
-    // Crear modal de solo lectura
     const modal = document.createElement('div');
     modal.id = 'reportModalReadOnly';
     modal.style.cssText = 'position:fixed; inset:0; z-index:99999; background:#fff; overflow-y:auto; font-family:Arial,Helvetica,sans-serif;';
@@ -2702,20 +2703,20 @@ window.verReporteOficial = function(docId) {
     const bar = document.createElement('div');
     bar.style.cssText = 'position:sticky; top:0; z-index:10; background:#ffffff; padding:12px 15px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 4px 15px rgba(0,0,0,0.08); border-bottom:1px solid #e2e8f0;';
     
-    bar.innerHTML = \<div style="display:flex; align-items:center; gap:10px;">
+    bar.innerHTML = `<div style="display:flex; align-items:center; gap:10px;">
         <button onclick="document.getElementById('reportModalReadOnly').remove()"
             style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;
             padding:8px 14px;border-radius:24px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;">
-            &#x25C0; Regresar
+            ◀ Regresar
         </button>
     </div>
     <div>
         <button onclick="window.print()"
             style="background:#fff;color:#2563eb;border:1px solid #bfdbfe;
             padding:8px 14px;border-radius:24px;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;box-shadow:0 2px 4px rgba(37,99,235,0.05);">
-            &#x1F5A8; Descargar PDF
+            🖨️ Descargar PDF
         </button>
-    </div>\;
+    </div>`;
     
     const content = document.createElement('div');
     content.style.cssText = 'padding:0; background:#fff; min-height:100vh;';
@@ -2725,6 +2726,4 @@ window.verReporteOficial = function(docId) {
     modal.appendChild(content);
     document.body.appendChild(modal);
 };
-
-
 
