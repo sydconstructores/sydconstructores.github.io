@@ -1,5 +1,5 @@
-// SYD Constructores — Service Worker Beta-1.0.1
-const CACHE_NAME = 'syd-app-Beta-1.0.1';
+// SYD Constructores — Service Worker Beta-1.0.2
+const CACHE_NAME = 'syd-app-Beta-1.0.2';
 
 const ASSETS = [
     './',
@@ -14,7 +14,7 @@ self.addEventListener('install', e => {
         caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
     );
     // IMPORTANTE: Removemos self.skipWaiting() para que el nuevo SW no tome el control
-    // sin avisar al usuario. El control se tomará cuando el usuario pulse el botón "Actualizar".
+    self.skipWaiting();
 });
 
 // Activación: limpiar caches viejos
@@ -46,3 +46,5 @@ self.addEventListener('message', event => {
         self.skipWaiting();
     }
 });
+
+

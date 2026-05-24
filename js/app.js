@@ -55,7 +55,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.1';
+const APP_VERSION = 'Beta 1.0.2';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -2624,4 +2624,5 @@ function imageToBase64(file, maxWidth, quality) {
         reader.readAsDataURL(file);
     });
 }
+
 
