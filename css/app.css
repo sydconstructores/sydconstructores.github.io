@@ -188,24 +188,33 @@
         }
         .tab-btn.active{color:var(--accent2);border-bottom-color:var(--accent2)}
         .main{padding:14px}
-        .view{display:none}.view.active{display:block}
+        .view{display:none}
+        .view.active{display:block; animation: fadeInView 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;}
+        @keyframes fadeInView { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
         .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
         .stat-value{font-size:1.8rem;font-weight:800;color:var(--accent);line-height:1}
         .stat-label{font-size:0.65rem;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.05em}
         .zone-card{
-            background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-            padding:14px;margin-bottom:10px;position:relative;overflow:hidden;
+            background:rgba(31,41,55,0.6);backdrop-filter:blur(12px);
+            border:1px solid rgba(255,255,255,0.08);box-shadow:0 8px 32px rgba(0,0,0,0.2);
+            border-radius:var(--radius);padding:14px;margin-bottom:12px;position:relative;overflow:hidden;
+            transition:transform 0.2s, box-shadow 0.2s;
         }
+        .zone-card:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,0,0,0.3);}
         .zone-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px}
-        .zone-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+        .zone-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
         .zone-name-text{font-size:0.85rem;font-weight:700;flex:1;padding-right:10px}
+        .zone-last-update{font-size:0.6rem;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:4px}
+        .zone-last-update::before{content:'';display:block;width:6px;height:6px;background:var(--accent3);border-radius:50%;animation:pulse 2s infinite}
+        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
         .zone-pct-badge{font-size:0.78rem;font-weight:800;padding:3px 10px;border-radius:20px;background:rgba(245,158,11,0.15);color:var(--accent2);flex-shrink:0}
         .task-chip{display:inline-block;background:rgba(59,130,246,0.15);color:#93c5fd;font-size:0.65rem;font-weight:600;padding:3px 8px;border-radius:6px;margin-bottom:8px}
         .task-desc-mini{font-size:0.76rem;color:var(--soft);line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
         .progress-bar-wrap{display:flex;align-items:center;gap:8px}
-        .progress-track{flex:1;width:100%;height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden}
-        .progress-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 0.4s cubic-bezier(.4,0,.2,1)}
+        .progress-track{flex:1;width:100%;height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,0.3)}
+        @keyframes fillProgress { from { width: 0%; } to { width: var(--pct); } }
+        .progress-fill{height:100%;border-radius:4px;width:var(--pct);animation:fillProgress 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;}
         .progress-pct{font-size:0.75rem;font-weight:700;color:var(--accent2);width:34px;text-align:right}
         #versionBadge {
             position: fixed;
