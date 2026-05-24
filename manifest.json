@@ -1,10 +1,10 @@
 {
-  "id": "/syd-constructores/",
+  "id": "/syd-beta/",
   "name": "SYD Constructores",
   "short_name": "SYD APP",
   "description": "Seguimiento de tu obra en tiempo real",
-  "start_url": "/syd-constructores/",
-  "scope": "/syd-constructores/",
+  "start_url": "/syd-beta/",
+  "scope": "/syd-beta/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0a0e1a",
@@ -25,3 +25,4 @@
     }
   ]
 }
+
