@@ -55,7 +55,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.9';
+const APP_VERSION = 'Beta 1.0.10';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -1868,6 +1868,7 @@ function showReportModal(html, fileName, numFotos) {
 }
 
 async function generateReport() {
+    const obraId = session.obra || 'sauces';
     if (weeklyNotes.length === 0) { alert('Agrega al menos una nota primero.'); return; }
     const btn = document.getElementById('btnReporte');
     const oldText = btn.innerHTML;
@@ -1876,7 +1877,7 @@ async function generateReport() {
 
     try {
         // 1. Buscar fotos de la obra (SIN filtro de semana para no perderse ninguna)
-        const fotosSnap = await db.collection('obras').doc(session.obra)
+        const fotosSnap = await db.collection('obras').doc(obraId)
             .collection('fotos').orderBy('timestamp', 'desc').limit(8).get();
         const fotoUrls = [];
         fotosSnap.forEach(doc => fotoUrls.push(doc.data().url));

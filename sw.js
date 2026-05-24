@@ -1,5 +1,5 @@
-// SYD Constructores — Service Worker Beta-1.0.9
-const CACHE_NAME = 'syd-app-Beta-1.0.9';
+// SYD Constructores — Service Worker Beta-1.0.10
+const CACHE_NAME = 'syd-app-Beta-1.0.10';
 
 const ASSETS = [
     './',
@@ -13,7 +13,6 @@ self.addEventListener('install', e => {
     e.waitUntil(
         caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
     );
-    // IMPORTANTE: Removemos self.skipWaiting() para que el nuevo SW no tome el control
     self.skipWaiting();
 });
 
@@ -27,31 +26,44 @@ self.addEventListener('activate', e => {
     self.clients.claim();
 });
 
-// Fetch: primero red, si falla usa caché
+// Fetch: primero red, si falla usa caché (solo GET y recursos HTTP/HTTPS locales)
 self.addEventListener('fetch', e => {
+    // Solo interceptar peticiones GET
+    if (e.request.method !== 'GET') {
+        return;
+    }
+
+    // Evitar cachear llamadas de otros protocolos (chrome-extension, etc.)
+    const url = new URL(e.request.url);
+    if (!url.protocol.startsWith('http')) {
+        return;
+    }
+    
+    // Ignorar APIs externas dinámicas y Firebase Websockets/REST
+    if (url.hostname.includes('firestore.googleapis.com') || 
+        url.hostname.includes('generativelanguage.googleapis.com') ||
+        url.hostname.includes('api.imgbb.com') ||
+        url.pathname.includes('/__/firebase/')) {
+        return;
+    }
+
     e.respondWith(
         fetch(e.request)
             .then(resp => {
-                const clone = resp.clone();
-                caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+                // Solo cachear respuestas válidas y exitosas del mismo origen
+                if (resp && resp.status === 200 && resp.type === 'basic') {
+                    const clone = resp.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+                }
                 return resp;
             })
             .catch(() => caches.match(e.request))
     );
 });
 
-// Mensajes: Escuchar cuando la UI nos dice que saltemos la espera (botón Actualizar pulsado)
+// Mensajes: Escuchar cuando la UI nos dice que saltemos la espera
 self.addEventListener('message', event => {
     if (event.data === 'SKIP_WAITING') {
         self.skipWaiting();
     }
 });
-
-
-
-
-
-
-
-
-
