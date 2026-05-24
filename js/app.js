@@ -55,7 +55,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.7';
+const APP_VERSION = 'Beta 1.0.8';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -1491,6 +1491,7 @@ function switchTab(tabId, btn) {
     else if(tabId==='avance') renderAvance();
     else if(tabId==='documentos') renderDocumentos();
     else if(tabId==='accesos') renderAccesos();
+    else if(tabId==='reportes') cargarHistorialReportes();
 }
 
 // ══════════════════════════════════════
@@ -2641,6 +2642,89 @@ window.togglePasswordVisibility = function(inputId, btn) {
 
 
 
+
+
+
+
+// Cargar Historial de Reportes
+window.cargarHistorialReportes = async function() {
+    const listWrap = document.getElementById('historialReportesList');
+    if(!listWrap) return;
+    if(!session || !session.obra) return;
+    
+    listWrap.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted); font-size:0.85rem;">Cargando reportes...</div>';
+    
+    try {
+        const snap = await db.collection('informes_compartidos')
+            .where('obra', '==', session.obra)
+            .orderBy('creado', 'desc')
+            .get();
+            
+        if(snap.empty) {
+            listWrap.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted); font-size:0.85rem;">No hay reportes publicados an.</div>';
+            return;
+        }
+        
+        let html = '';
+        snap.forEach(doc => {
+            const data = doc.data();
+            const dateStr = data.creado ? data.creado.toDate().toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'}) : 'Reciente';
+            
+            html += <div class="zone-card" onclick="verReporteOficial('')" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <div style="font-weight:700; color:var(--accent);">Reporte Semana </div>
+                    <div style="font-size:0.7rem; color:var(--muted); margin-top:4px;">Publicado: </div>
+                </div>
+                <div style="color:var(--accent2);">&#x1F4D1; Ver</div>
+            </div>;
+        });
+        
+        listWrap.innerHTML = html;
+        window._informesSnapshot = snap; // Cache for opening
+    } catch(e) {
+        console.error('Error cargando reportes:', e);
+        listWrap.innerHTML = '<div style="text-align:center; padding:20px; color:var(--syd-rojo); font-size:0.85rem;">Error al cargar reportes.</div>';
+    }
+};
+
+window.verReporteOficial = function(docId) {
+    if(!window._informesSnapshot) return;
+    const doc = window._informesSnapshot.docs.find(d => d.id === docId);
+    if(!doc) return;
+    
+    const htmlContent = doc.data().html;
+    
+    // Crear modal de solo lectura
+    const modal = document.createElement('div');
+    modal.id = 'reportModalReadOnly';
+    modal.style.cssText = 'position:fixed; inset:0; z-index:99999; background:#fff; overflow-y:auto; font-family:Arial,Helvetica,sans-serif;';
+    
+    const bar = document.createElement('div');
+    bar.style.cssText = 'position:sticky; top:0; z-index:10; background:#ffffff; padding:12px 15px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 4px 15px rgba(0,0,0,0.08); border-bottom:1px solid #e2e8f0;';
+    
+    bar.innerHTML = \<div style="display:flex; align-items:center; gap:10px;">
+        <button onclick="document.getElementById('reportModalReadOnly').remove()"
+            style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;
+            padding:8px 14px;border-radius:24px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;">
+            &#x25C0; Regresar
+        </button>
+    </div>
+    <div>
+        <button onclick="window.print()"
+            style="background:#fff;color:#2563eb;border:1px solid #bfdbfe;
+            padding:8px 14px;border-radius:24px;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;box-shadow:0 2px 4px rgba(37,99,235,0.05);">
+            &#x1F5A8; Descargar PDF
+        </button>
+    </div>\;
+    
+    const content = document.createElement('div');
+    content.style.cssText = 'padding:0; background:#fff; min-height:100vh;';
+    content.innerHTML = htmlContent;
+    
+    modal.appendChild(bar);
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+};
 
 
 

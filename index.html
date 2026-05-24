@@ -195,8 +195,9 @@
     <button class="tab-btn" onclick="switchTab('gantt',this)">&#x1F4CA; Gantt</button>
     <button class="tab-btn" onclick="switchTab('detalle',this)">&#x1F4CC; Detalle</button>
     <button class="tab-btn" onclick="switchTab('avance',this)">&#x1F4C8; Avance</button>
+    <button class="tab-btn" onclick="switchTab('reportes',this)">&#x1F4D1; Reportes</button>
     <button class="tab-btn" onclick="switchTab('documentos',this)">&#x1F4C1; Docs</button>
-        <button class="tab-btn" id="tabBitacora" style="display:none" onclick="switchTab('bitacora',this)">&#x1F4DD; Bitácora</button>
+    <button class="tab-btn" id="tabBitacora" style="display:none" onclick="switchTab('bitacora',this)">&#x1F4DD; Bitácora</button>
     <button class="tab-btn" id="tabAccesos" style="display:none" onclick="switchTab('accesos',this)">&#x1F465; Accesos</button>
 </nav>
 
@@ -300,6 +301,14 @@
     <div class="view" id="view-avance">
         <div class="detail-section-title">Avance acumulado por zona</div>
         <div id="avanceContent"></div>
+        <div class="section-gap"></div>
+    </div>
+    
+    <div class="view" id="view-reportes">
+        <div class="detail-section-title">Historial de Reportes</div>
+        <div id="historialReportesList" style="display:flex; flex-direction:column; gap:10px; padding: 0 4px;">
+            <div style="text-align:center; padding:20px; color:var(--muted); font-size:0.85rem;">Cargando reportes...</div>
+        </div>
         <div class="section-gap"></div>
     </div>
     <div class="view" id="view-documentos">
