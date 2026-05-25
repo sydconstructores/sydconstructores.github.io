@@ -55,7 +55,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.13';
+const APP_VERSION = 'Beta 1.0.14';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -2595,7 +2595,6 @@ ${emojiPhone} 333 250 3313`;
             }
         }
     }
-}
 }
 
 
