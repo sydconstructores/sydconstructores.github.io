@@ -1,5 +1,5 @@
-// SYD Constructores — Service Worker Beta-1.0.12
-const CACHE_NAME = 'syd-app-Beta-1.0.12';
+// SYD Constructores — Service Worker Beta-1.0.13
+const CACHE_NAME = 'syd-app-Beta-1.0.13';
 
 const ASSETS = [
     './',

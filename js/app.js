@@ -55,7 +55,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.12';
+const APP_VERSION = 'Beta 1.0.13';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -1223,6 +1223,10 @@ function launchApp() {
     updateDashboard();
     const firstTab = document.querySelector('.tab-btn');
     if(firstTab) { firstTab.classList.add('active'); }
+    // Restaurar cola de WhatsApp si quedó a medias por recarga/suspensión del PWA
+    if (typeof checkAndRestoreWhatsAppQueue === 'function') {
+        checkAndRestoreWhatsAppQueue();
+    }
 }
 
 // ══════════════════════════════════════
@@ -2284,7 +2288,6 @@ async function sendReportWhatsApp() {
         const semana = window._lastReportWeek || currentWeek;
         const fecha = new Date().toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-
         btn.innerHTML = oldBtnText;
         btn.disabled = false;
 
@@ -2292,6 +2295,16 @@ async function sendReportWhatsApp() {
         window._waQueue = clients;
         window._waIndex = 0;
         window._waActive = true;
+        
+        // Guardar cola de envíos en localStorage para resistir suspensiones o recargas del PWA
+        localStorage.setItem('syd_wa_queue', JSON.stringify(clients));
+        localStorage.setItem('syd_wa_index', '0');
+        localStorage.setItem('syd_wa_active', 'true');
+        localStorage.setItem('syd_wa_saludo', saludo);
+        localStorage.setItem('syd_wa_obraname', obraName);
+        localStorage.setItem('syd_wa_semana', semana.toString());
+        localStorage.setItem('syd_wa_fecha', fecha);
+        localStorage.setItem('syd_wa_reportlink', reportLink || '');
         
         const modalId = 'waSequentialModal';
         const oldModal = document.getElementById(modalId);
@@ -2321,6 +2334,16 @@ async function sendReportWhatsApp() {
             const total = window._waQueue.length;
             
             if (idx >= total) {
+                // Cola terminada: limpiar localStorage
+                localStorage.removeItem('syd_wa_queue');
+                localStorage.removeItem('syd_wa_index');
+                localStorage.removeItem('syd_wa_active');
+                localStorage.removeItem('syd_wa_saludo');
+                localStorage.removeItem('syd_wa_obraname');
+                localStorage.removeItem('syd_wa_semana');
+                localStorage.removeItem('syd_wa_fecha');
+                localStorage.removeItem('syd_wa_reportlink');
+
                 card.innerHTML = `
                     <div style="font-size:3rem; margin-bottom:15px;">✅</div>
                     <div style="font-size:1.4rem; font-weight:800; margin-bottom:10px;">¡Todo enviado!</div>
@@ -2354,10 +2377,10 @@ async function sendReportWhatsApp() {
                 </button>
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <button onclick="window._waIndex++; window._updateWAModal()" style="background:rgba(255,255,255,0.05); color:#94a3b8; border:none; padding:10px; border-radius:10px; font-size:0.8rem; font-weight:600; cursor:pointer;">
+                    <button onclick="window._waIndex++; localStorage.setItem('syd_wa_index', window._waIndex.toString()); window._updateWAModal()" style="background:rgba(255,255,255,0.05); color:#94a3b8; border:none; padding:10px; border-radius:10px; font-size:0.8rem; font-weight:600; cursor:pointer;">
                         Omitir este
                     </button>
-                    <button onclick="window._waActive=false; document.getElementById('${modalId}').remove()" style="background:transparent; color:#64748b; border:none; padding:10px; font-size:0.8rem; cursor:pointer;">
+                    <button onclick="window._waActive=false; localStorage.removeItem('syd_wa_queue'); localStorage.removeItem('syd_wa_index'); localStorage.removeItem('syd_wa_active'); localStorage.removeItem('syd_wa_saludo'); localStorage.removeItem('syd_wa_obraname'); localStorage.removeItem('syd_wa_semana'); localStorage.removeItem('syd_wa_fecha'); localStorage.removeItem('syd_wa_reportlink'); document.getElementById('${modalId}').remove()" style="background:transparent; color:#64748b; border:none; padding:10px; font-size:0.8rem; cursor:pointer;">
                         Cancelar todo
                     </button>
                 </div>
@@ -2389,9 +2412,9 @@ ${emojiPhone} 333 250 3313`;
 
             window.open(`https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`, '_blank');
             
-            // Avanzar al siguiente después de un pequeño delay para que no sea instantáneo
-            // pero el usuario verá el cambio al volver a la app.
+            // Avanzar al siguiente e indexar en localStorage
             window._waIndex++;
+            localStorage.setItem('syd_wa_index', window._waIndex.toString());
             setTimeout(window._updateWAModal, 500);
         };
 
@@ -2412,6 +2435,167 @@ ${emojiPhone} 333 250 3313`;
         alert('Error: ' + e.message + '\n\nRevisa la conexión a internet.');
         btn.innerHTML = oldBtnText; btn.disabled = false;
     }
+}
+
+// RESTAURAR LA COLA DE WHATSAPP DESPUÉS DE LA SUSPENSIÓN / RECARGA DEL MÓVIL
+function checkAndRestoreWhatsAppQueue() {
+    if (localStorage.getItem('syd_wa_active') === 'true') {
+        const queueRaw = localStorage.getItem('syd_wa_queue');
+        const indexRaw = localStorage.getItem('syd_wa_index');
+        
+        if (queueRaw && indexRaw) {
+            const queue = JSON.parse(queueRaw);
+            const index = parseInt(indexRaw, 10);
+            
+            if (index < queue.length) {
+                // Restaurar la cola global
+                window._waQueue = queue;
+                window._waIndex = index;
+                window._waActive = true;
+                
+                const saludo = localStorage.getItem('syd_wa_saludo') || 'Buenas tardes';
+                const obraName = localStorage.getItem('syd_wa_obraname') || 'Obra';
+                const semana = localStorage.getItem('syd_wa_semana') || currentWeek;
+                const fecha = localStorage.getItem('syd_wa_fecha') || '';
+                const reportLink = localStorage.getItem('syd_wa_reportlink') || '';
+                
+                // Mostrar el modal de envío secuencial de nuevo
+                const modalId = 'waSequentialModal';
+                const oldModal = document.getElementById(modalId);
+                if (oldModal) oldModal.remove();
+
+                const modal = document.createElement('div');
+                modal.id = modalId;
+                modal.style.cssText = `
+                    position:fixed; inset:0; z-index:100000;
+                    background:rgba(0,0,0,0.9); display:flex; align-items:center; justify-content:center;
+                    padding:20px; font-family:sans-serif; backdrop-filter:blur(10px);
+                `;
+
+                const card = document.createElement('div');
+                card.id = 'waSequentialCard';
+                card.style.cssText = `
+                    background:#1e293b; border-radius:24px; width:100%; max-width:360px;
+                    padding:32px 24px; color:#fff; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.5);
+                    border:1px solid rgba(255,255,255,0.1);
+                `;
+                
+                modal.appendChild(card);
+                document.body.appendChild(modal);
+
+                window._updateWAModal = function() {
+                    const idx = window._waIndex;
+                    const total = window._waQueue.length;
+                    
+                    if (idx >= total) {
+                        // Limpiar localStorage
+                        localStorage.removeItem('syd_wa_queue');
+                        localStorage.removeItem('syd_wa_index');
+                        localStorage.removeItem('syd_wa_active');
+                        localStorage.removeItem('syd_wa_saludo');
+                        localStorage.removeItem('syd_wa_obraname');
+                        localStorage.removeItem('syd_wa_semana');
+                        localStorage.removeItem('syd_wa_fecha');
+                        localStorage.removeItem('syd_wa_reportlink');
+                        
+                        card.innerHTML = `
+                            <div style="font-size:3rem; margin-bottom:15px;">✅</div>
+                            <div style="font-size:1.4rem; font-weight:800; margin-bottom:10px;">¡Todo enviado!</div>
+                            <div style="font-size:0.9rem; color:#94a3b8; margin-bottom:24px;">Se han procesado los ${total} clientes de la lista.</div>
+                            <button onclick="window._waActive=false; document.getElementById('${modalId}').remove()" style="width:100%; background:var(--accent); color:#fff; border:none; padding:15px; border-radius:14px; font-weight:700; font-size:1rem; cursor:pointer;">
+                                Finalizar y Cerrar
+                            </button>
+                        `;
+                        return;
+                    }
+
+                    const [phone, nombre] = window._waQueue[idx];
+                    const pct = Math.round(((idx) / total) * 100);
+                    
+                    card.innerHTML = `
+                        <div style="font-size:0.75rem; color:var(--accent2); font-weight:800; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">
+                            Envío Secuencial (${idx + 1} de ${total})
+                        </div>
+                        <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; margin-bottom:24px; overflow:hidden;">
+                            <div style="width:${pct}%; height:100%; background:var(--accent2); transition:width 0.3s;"></div>
+                        </div>
+                        
+                        <div style="margin-bottom:24px;">
+                            <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:4px;">Enviar informe a:</div>
+                            <div style="font-size:1.3rem; font-weight:800; color:#fff;">${nombre.toUpperCase()}</div>
+                            <div style="font-size:0.9rem; color:var(--accent); font-weight:600; margin-top:4px;">${phone}</div>
+                        </div>
+
+                        <button onclick="window._sendCurrentWA()" style="width:100%; background:#25d366; color:#fff; border:none; padding:18px; border-radius:16px; font-weight:800; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 10px 20px rgba(37,211,102,0.2); margin-bottom:16px;">
+                            <span>📱 ENVIAR AHORA</span>
+                        </button>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                            <button onclick="window._waIndex++; localStorage.setItem('syd_wa_index', window._waIndex.toString()); window._updateWAModal()" style="background:rgba(255,255,255,0.05); color:#94a3b8; border:none; padding:10px; border-radius:10px; font-size:0.8rem; font-weight:600; cursor:pointer;">
+                                Omitir este
+                            </button>
+                            <button onclick="window._waActive=false; localStorage.removeItem('syd_wa_queue'); localStorage.removeItem('syd_wa_index'); localStorage.removeItem('syd_wa_active'); localStorage.removeItem('syd_wa_saludo'); localStorage.removeItem('syd_wa_obraname'); localStorage.removeItem('syd_wa_semana'); localStorage.removeItem('syd_wa_fecha'); localStorage.removeItem('syd_wa_reportlink'); document.getElementById('${modalId}').remove()" style="background:transparent; color:#64748b; border:none; padding:10px; font-size:0.8rem; cursor:pointer;">
+                                Cancelar todo
+                            </button>
+                        </div>
+                    `;
+                };
+
+                window._sendCurrentWA = function() {
+                    const [phone, nombre] = window._waQueue[window._waIndex];
+                    const firstName = nombre.split(' ')[0].toUpperCase();
+                    const emojiCalendar = '\uD83D\uDCC5';
+                    const emojiDoc = '\uD83D\uDCC4';
+                    const emojiEmail = '\uD83D\uDCE7';
+                    const emojiPhone = '\uD83D\uDCDE';
+
+                    const mensaje = `${saludo}, ${firstName}.
+
+Le enviamos el informe semanal correspondiente a los trabajos realizados en su obra *${obraName}*.
+
+${emojiCalendar} Semana ${semana} — ${fecha}
+${reportLink ? `\n${emojiDoc} *Ver informe completo:*\n${reportLink}\n` : ''}
+Cualquier duda o comentario estamos a sus órdenes.
+
+_SYD Constructores_
+${emojiEmail} info@sydconstructores.com.mx
+${emojiPhone} 333 250 3313`;
+
+                    let tel = phone.replace(/[^\d]/g, '');
+                    if (tel.length === 10) tel = '52' + tel;
+
+                    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`, '_blank');
+                    
+                    window._waIndex++;
+                    localStorage.setItem('syd_wa_index', window._waIndex.toString());
+                    setTimeout(window._updateWAModal, 500);
+                };
+
+                // Registrar focus listener si no está
+                if (!window._waFocusListenerAdded) {
+                    window.addEventListener('focus', () => {
+                        if (window._waActive) {
+                            window._updateWAModal();
+                        }
+                    });
+                    window._waFocusListenerAdded = true;
+                }
+
+                window._updateWAModal();
+            } else {
+                // Limpiar si se completó de otra forma
+                localStorage.removeItem('syd_wa_queue');
+                localStorage.removeItem('syd_wa_index');
+                localStorage.removeItem('syd_wa_active');
+                localStorage.removeItem('syd_wa_saludo');
+                localStorage.removeItem('syd_wa_obraname');
+                localStorage.removeItem('syd_wa_semana');
+                localStorage.removeItem('syd_wa_fecha');
+                localStorage.removeItem('syd_wa_reportlink');
+            }
+        }
+    }
+}
 }
 
 
