@@ -566,8 +566,12 @@
         max-width: 70px !important;
     }
     .week-badge {
+        position: absolute !important;
+        top: 10px !important;
+        right: 12px !important;
         padding: 4px 8px;
         font-size: 0.68rem;
+        z-index: 101; /* Ensure it floats above other header elements */
     }
     .role-badge {
         padding: 4px 8px;
