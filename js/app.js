@@ -55,7 +55,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.17';
+const APP_VERSION = 'Beta 1.0.18';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -68,32 +68,23 @@ function fillVersionBadges() {
 fillVersionBadges();
 
 let newWorker;
+let swRegistration = null;
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').then(reg => {
             console.log('[SYD] Service Worker Registrado');
-
-            const lastVersion = localStorage.getItem('syd_sw_version');
+            swRegistration = reg;
 
             reg.addEventListener('updatefound', () => {
                 newWorker = reg.installing;
                 newWorker.addEventListener('statechange', () => {
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        // Solo mostrar banner si es una versión NUEVA real
-                        if (lastVersion === APP_VERSION) {
-                            // Misma versión: ignorar completamente, NO hacer SKIP_WAITING
-                            console.log('[SYD] SW reinstalado pero misma versión, ignorando');
-                            return;
-                        }
+                        console.log('[SYD] ¡Nueva versión de la app instalada en caché! Mostrando banner.');
                         document.getElementById('updateBanner').classList.add('show');
                     }
                 });
             });
-
-            if (!reg.waiting) {
-                localStorage.setItem('syd_sw_version', APP_VERSION);
-            }
         }).catch(err => console.log('[SYD] Fallo SW:', err));
 
         let refreshing;
@@ -113,6 +104,14 @@ function applyUpdate() {
         newWorker.postMessage('SKIP_WAITING');
     }
 }
+
+// Comprobar actualizaciones de forma ultra-eficiente al regresar a la aplicación (foco)
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && swRegistration) {
+        console.log('[SYD] Regresando a la app. Verificando actualización...');
+        swRegistration.update().catch(err => console.warn('[SYD] Fallo silencioso al verificar actualización:', err));
+    }
+});
 
 
 
