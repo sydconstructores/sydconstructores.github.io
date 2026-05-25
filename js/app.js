@@ -55,7 +55,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.22';
+const APP_VERSION = 'Beta 1.0.23';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -68,13 +68,11 @@ function fillVersionBadges() {
 fillVersionBadges();
 
 let newWorker;
-let swRegistration = null;
 
 if ('serviceWorker' in navigator) {
     const registrarSW = () => {
         navigator.serviceWorker.register('./sw.js').then(reg => {
             console.log('[SYD] Service Worker Registrado');
-            swRegistration = reg;
 
             // CASO 1: Si ya hay una actualización descargada y esperando en segundo plano
             if (reg.waiting) {
@@ -130,30 +128,6 @@ function applyUpdate() {
         newWorker.postMessage('SKIP_WAITING');
     }
 }
-
-let updateTimeout = null;
-function buscarActualizacionSilenciosa() {
-    if (swRegistration) {
-        console.log('[SYD] Buscando actualización en el servidor...');
-        swRegistration.update().catch(err => console.warn('[SYD] Fallo silencioso al verificar actualización:', err));
-    }
-}
-
-// Comprobar actualizaciones al regresar a la aplicación (foco) con 2s de delay para reconexión de red
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-        clearTimeout(updateTimeout);
-        updateTimeout = setTimeout(buscarActualizacionSilenciosa, 2000);
-    }
-});
-
-window.addEventListener('focus', () => {
-    clearTimeout(updateTimeout);
-    updateTimeout = setTimeout(buscarActualizacionSilenciosa, 2000);
-});
-
-// Buscar de inmediato si el teléfono recupera la conexión a internet
-window.addEventListener('online', buscarActualizacionSilenciosa);
 
 
 
