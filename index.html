@@ -35,7 +35,7 @@
     
 
 
-<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/app.css?v=1.0.16">
 </head>
 <body>
 <div id="versionBadge"></div>
@@ -168,7 +168,7 @@
             <div class="app-subtitle" id="appSubtitle">Sistema de Gestión de Obras <span class="version-auto"></span></div>
         </div>
         <div class="header-right" style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
-            <div style="display:flex; align-items:center; gap:6px;">
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
                 <button id="btnNotificaciones" onclick="requestPushPermission()" style="display:none; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#6ee7b7; padding:4px 10px; border-radius:20px; font-size:0.75rem; font-weight:700; cursor:pointer; align-items:center; gap:5px;">🔔 Activar Notificaciones</button>
                 <span class="role-badge" id="clientEmailBadge" style="display:none;background:rgba(255,255,255,0.1);color:#cbd5e1;font-weight:normal;text-transform:lowercase;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
                 <span class="role-badge" id="roleBadge"></span>
@@ -449,7 +449,7 @@
 
 
 <script src="js/config.js"></script>
-<script src="js/app.js?v=1.0.15"></script>
+<script src="js/app.js?v=1.0.16"></script>
 </body>
 <script src="debug_gemini.js"></script>
 </html>

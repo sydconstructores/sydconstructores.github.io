@@ -55,7 +55,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.15';
+const APP_VERSION = 'Beta 1.0.16';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
