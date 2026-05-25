@@ -55,7 +55,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.14';
+const APP_VERSION = 'Beta 1.0.15';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -2179,9 +2179,10 @@ async function showReportHistory() {
                         <div style="font-weight:700; color:#1e293b; font-size:0.85rem;">Semana ${data.semana || '?'}</div>
                         <div style="font-size:0.7rem; color:#64748b;">${date}</div>
                     </div>
-                    <div style="display:flex; gap:8px;">
-                        <a href="${link}" target="_blank" style="background:#3b82f6; color:#fff; text-decoration:none; padding:8px 12px; border-radius:10px; font-size:0.75rem; font-weight:700;">Ver</a>
-                        <button onclick="deleteReport('${doc.id}', this)" style="background:#ef4444; color:#fff; border:none; padding:8px 12px; border-radius:10px; font-size:0.75rem; font-weight:700; cursor:pointer;">Eliminar</button>
+                    <div style="display:flex; gap:6px; flex-shrink:0;">
+                        <a href="${link}" target="_blank" style="background:#2563eb; color:#fff; text-decoration:none; padding:6px 10px; border-radius:8px; font-size:0.7rem; font-weight:700;">Ver</a>
+                        <button onclick="reenviarReporte('${doc.id}', ${data.semana || 1}, '${link}', this)" style="background:#10b981; color:#fff; border:none; padding:6px 10px; border-radius:8px; font-size:0.7rem; font-weight:700; cursor:pointer;">Reenviar</button>
+                        <button onclick="deleteReport('${doc.id}', this)" style="background:#ef4444; color:#fff; border:none; padding:6px 10px; border-radius:8px; font-size:0.7rem; font-weight:700; cursor:pointer;">Eliminar</button>
                     </div>
                 </div>
             `;
@@ -2596,6 +2597,195 @@ ${emojiPhone} 333 250 3313`;
         }
     }
 }
+
+// REENVIAR REPORTE EXISTENTE A TODOS LOS CLIENTES DE LA OBRA
+window.reenviarReporte = async function(docId, semana, reportLink, btn) {
+    if (!db) { alert('Firebase no está conectado.'); return; }
+    const obraId = session.obra;
+    if (!obraId) { alert('No hay obra seleccionada.'); return; }
+
+    const oldBtnText = btn.innerHTML;
+    btn.innerHTML = '...';
+    btn.disabled = true;
+
+    try {
+        console.log('[SYD] Iniciando reenvío de reporte...');
+
+        // 1. Buscar clientes
+        const snap = await db.collection('clientes').get();
+        const clientMap = {};
+        
+        snap.forEach(doc => {
+            const d = doc.data();
+            if (d.obra === obraId && d.telefono && d.nombre) {
+                const phone = d.telefono.replace(/[^\d+]/g, '');
+                if (phone) clientMap[phone] = d.nombre;
+            }
+        });
+
+        const clients = Object.entries(clientMap);
+        console.log('[SYD] Clientes para reenvío:', clients.length);
+
+        if (clients.length === 0) {
+            alert('⚠️ No se encontraron clientes registrados en esta obra.\n\nVe a la sección de "Registro de Accesos" para verificar.');
+            btn.innerHTML = oldBtnText; btn.disabled = false;
+            return;
+        }
+
+        const hour = new Date().getHours();
+        const saludo = hour < 12 ? 'Buenos días' : 'Buenas tardes';
+        const obraName = currentObra?.name || obraId;
+        const fecha = new Date().toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+        btn.innerHTML = oldBtnText;
+        btn.disabled = false;
+
+        // Cerrar el modal del historial para que no se superponga
+        const historyModal = document.getElementById('historyModal');
+        if (historyModal) historyModal.remove();
+
+        // 2. Iniciar flujo secuencial
+        window._waQueue = clients;
+        window._waIndex = 0;
+        window._waActive = true;
+        
+        // Guardar en localStorage para resistir suspensiones
+        localStorage.setItem('syd_wa_queue', JSON.stringify(clients));
+        localStorage.setItem('syd_wa_index', '0');
+        localStorage.setItem('syd_wa_active', 'true');
+        localStorage.setItem('syd_wa_saludo', saludo);
+        localStorage.setItem('syd_wa_obraname', obraName);
+        localStorage.setItem('syd_wa_semana', semana.toString());
+        localStorage.setItem('syd_wa_fecha', fecha);
+        localStorage.setItem('syd_wa_reportlink', reportLink || '');
+        
+        const modalId = 'waSequentialModal';
+        const oldModal = document.getElementById(modalId);
+        if (oldModal) oldModal.remove();
+
+        const modal = document.createElement('div');
+        modal.id = modalId;
+        modal.style.cssText = `
+            position:fixed; inset:0; z-index:100000;
+            background:rgba(0,0,0,0.9); display:flex; align-items:center; justify-content:center;
+            padding:20px; font-family:sans-serif; backdrop-filter:blur(10px);
+        `;
+
+        const card = document.createElement('div');
+        card.id = 'waSequentialCard';
+        card.style.cssText = `
+            background:#1e293b; border-radius:24px; width:100%; max-width:360px;
+            padding:32px 24px; color:#fff; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.5);
+            border:1px solid rgba(255,255,255,0.1);
+        `;
+        
+        modal.appendChild(card);
+        document.body.appendChild(modal);
+
+        window._updateWAModal = function() {
+            const idx = window._waIndex;
+            const total = window._waQueue.length;
+            
+            if (idx >= total) {
+                localStorage.removeItem('syd_wa_queue');
+                localStorage.removeItem('syd_wa_index');
+                localStorage.removeItem('syd_wa_active');
+                localStorage.removeItem('syd_wa_saludo');
+                localStorage.removeItem('syd_wa_obraname');
+                localStorage.removeItem('syd_wa_semana');
+                localStorage.removeItem('syd_wa_fecha');
+                localStorage.removeItem('syd_wa_reportlink');
+
+                card.innerHTML = `
+                    <div style="font-size:3rem; margin-bottom:15px;">✅</div>
+                    <div style="font-size:1.4rem; font-weight:800; margin-bottom:10px;">¡Todo enviado!</div>
+                    <div style="font-size:0.9rem; color:#94a3b8; margin-bottom:24px;">Se han procesado los ${total} clientes de la lista.</div>
+                    <button onclick="window._waActive=false; document.getElementById('${modalId}').remove()" style="width:100%; background:var(--accent); color:#fff; border:none; padding:15px; border-radius:14px; font-weight:700; font-size:1rem; cursor:pointer;">
+                        Finalizar y Cerrar
+                    </button>
+                `;
+                return;
+            }
+
+            const [phone, nombre] = window._waQueue[idx];
+            const pct = Math.round(((idx) / total) * 100);
+            
+            card.innerHTML = `
+                <div style="font-size:0.75rem; color:var(--accent2); font-weight:800; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">
+                    Reenvío Secuencial (${idx + 1} de ${total})
+                </div>
+                <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; margin-bottom:24px; overflow:hidden;">
+                    <div style="width:${pct}%; height:100%; background:var(--accent2); transition:width 0.3s;"></div>
+                </div>
+                
+                <div style="margin-bottom:24px;">
+                    <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:4px;">Enviar informe a:</div>
+                    <div style="font-size:1.3rem; font-weight:800; color:#fff;">${nombre.toUpperCase()}</div>
+                    <div style="font-size:0.9rem; color:var(--accent); font-weight:600; margin-top:4px;">${phone}</div>
+                </div>
+
+                <button onclick="window._sendCurrentWA()" style="width:100%; background:#25d366; color:#fff; border:none; padding:18px; border-radius:16px; font-weight:800; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 10px 20px rgba(37,211,102,0.2); margin-bottom:16px;">
+                    <span>📱 ENVIAR AHORA</span>
+                </button>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <button onclick="window._waIndex++; localStorage.setItem('syd_wa_index', window._waIndex.toString()); window._updateWAModal()" style="background:rgba(255,255,255,0.05); color:#94a3b8; border:none; padding:10px; border-radius:10px; font-size:0.8rem; font-weight:600; cursor:pointer;">
+                        Omitir este
+                    </button>
+                    <button onclick="window._waActive=false; localStorage.removeItem('syd_wa_queue'); localStorage.removeItem('syd_wa_index'); localStorage.removeItem('syd_wa_active'); localStorage.removeItem('syd_wa_saludo'); localStorage.removeItem('syd_wa_obraname'); localStorage.removeItem('syd_wa_semana'); localStorage.removeItem('syd_wa_fecha'); localStorage.removeItem('syd_wa_reportlink'); document.getElementById('${modalId}').remove()" style="background:transparent; color:#64748b; border:none; padding:10px; font-size:0.8rem; cursor:pointer;">
+                        Cancelar todo
+                    </button>
+                </div>
+            `;
+        };
+
+        window._sendCurrentWA = function() {
+            const [phone, nombre] = window._waQueue[window._waIndex];
+            const firstName = nombre.split(' ')[0].toUpperCase();
+            const emojiCalendar = '\uD83D\uDCC5';
+            const emojiDoc = '\uD83D\uDCC4';
+            const emojiEmail = '\uD83D\uDCE7';
+            const emojiPhone = '\uD83D\uDCDE';
+
+            const mensaje = `${saludo}, ${firstName}.
+
+Le enviamos el informe semanal correspondiente a los trabajos realizados en su obra *${obraName}*.
+
+${emojiCalendar} Semana ${semana} — ${fecha}
+${reportLink ? `\n${emojiDoc} *Ver informe completo:*\n${reportLink}\n` : ''}
+Cualquier duda o comentario estamos a sus órdenes.
+
+_SYD Constructores_
+${emojiEmail} info@sydconstructores.com.mx
+${emojiPhone} 333 250 3313`;
+
+            let tel = phone.replace(/[^\d]/g, '');
+            if (tel.length === 10) tel = '52' + tel;
+
+            window.open(`https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`, '_blank');
+            
+            window._waIndex++;
+            localStorage.setItem('syd_wa_index', window._waIndex.toString());
+            setTimeout(window._updateWAModal, 500);
+        };
+
+        if (!window._waFocusListenerAdded) {
+            window.addEventListener('focus', () => {
+                if (window._waActive) {
+                    window._updateWAModal();
+                }
+            });
+            window._waFocusListenerAdded = true;
+        }
+
+        window._updateWAModal();
+
+    } catch (e) {
+        console.error('[SYD] Error reenvío WhatsApp:', e);
+        alert('Error al reenviar: ' + e.message);
+        btn.innerHTML = oldBtnText; btn.disabled = false;
+    }
+};
 
 
 
