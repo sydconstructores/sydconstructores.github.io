@@ -55,7 +55,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.19';
+const APP_VERSION = 'Beta 1.0.20';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -71,16 +71,35 @@ let newWorker;
 let swRegistration = null;
 
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
+    const registrarSW = () => {
         navigator.serviceWorker.register('./sw.js').then(reg => {
             console.log('[SYD] Service Worker Registrado');
             swRegistration = reg;
 
+            // CASO 1: Si ya hay una actualización descargada y esperando en segundo plano
+            if (reg.waiting) {
+                newWorker = reg.waiting;
+                console.log('[SYD] Actualización pendiente detectada (waiting). Mostrando banner.');
+                document.getElementById('updateBanner').classList.add('show');
+            }
+
+            // CASO 2: Si hay una actualización instalándose en este preciso instante
+            if (reg.installing) {
+                newWorker = reg.installing;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed') {
+                        console.log('[SYD] Actualización instalada. Mostrando banner.');
+                        document.getElementById('updateBanner').classList.add('show');
+                    }
+                });
+            }
+
+            // CASO 3: Escuchar futuras actualizaciones que se publiquen
             reg.addEventListener('updatefound', () => {
                 newWorker = reg.installing;
                 newWorker.addEventListener('statechange', () => {
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        console.log('[SYD] ¡Nueva versión de la app instalada en caché! Mostrando banner.');
+                        console.log('[SYD] ¡Nueva versión de la app instalada! Mostrando banner.');
                         document.getElementById('updateBanner').classList.add('show');
                     }
                 });
@@ -93,7 +112,14 @@ if ('serviceWorker' in navigator) {
             refreshing = true;
             window.location.reload();
         });
-    });
+    };
+
+    // Registrar de inmediato si la página ya terminó de cargar
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        registrarSW();
+    } else {
+        window.addEventListener('load', registrarSW);
+    }
 }
 
 function applyUpdate() {
@@ -105,13 +131,29 @@ function applyUpdate() {
     }
 }
 
-// Comprobar actualizaciones de forma ultra-eficiente al regresar a la aplicación (foco)
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && swRegistration) {
-        console.log('[SYD] Regresando a la app. Verificando actualización...');
+let updateTimeout = null;
+function buscarActualizacionSilenciosa() {
+    if (swRegistration) {
+        console.log('[SYD] Buscando actualización en el servidor...');
         swRegistration.update().catch(err => console.warn('[SYD] Fallo silencioso al verificar actualización:', err));
     }
+}
+
+// Comprobar actualizaciones al regresar a la aplicación (foco) con 2s de delay para reconexión de red
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        clearTimeout(updateTimeout);
+        updateTimeout = setTimeout(buscarActualizacionSilenciosa, 2000);
+    }
 });
+
+window.addEventListener('focus', () => {
+    clearTimeout(updateTimeout);
+    updateTimeout = setTimeout(buscarActualizacionSilenciosa, 2000);
+});
+
+// Buscar de inmediato si el teléfono recupera la conexión a internet
+window.addEventListener('online', buscarActualizacionSilenciosa);
 
 
 
