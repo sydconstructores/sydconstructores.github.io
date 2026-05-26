@@ -49,7 +49,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.26';
+const APP_VERSION = 'Beta 1.0.27';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -58,48 +58,15 @@ function fillVersionBadges() {
         el.textContent = APP_VERSION;
     });
 }
-// Run immediately since script loads after DOM
 fillVersionBadges();
-
-let newWorker;
 
 if ('serviceWorker' in navigator) {
     const registrarSW = () => {
         navigator.serviceWorker.register('./sw.js').then(reg => {
-            console.log('[SYD] Service Worker Registrado');
-
-            // CASO 1: Si ya hay una actualización descargada y esperando
-            // Solo mostrar si hay un controller activo (= es una ACTUALIZACIÓN, no primera carga)
-            if (reg.waiting && navigator.serviceWorker.controller) {
-                newWorker = reg.waiting;
-                console.log('[SYD] Actualización pendiente detectada (waiting). Mostrando banner.');
-                document.getElementById('updateBanner').classList.add('show');
-            }
-
-            // CASO 2: Si hay una actualización instalándose en este preciso instante
-            // Solo mostrar si hay un controller activo (= es una ACTUALIZACIÓN real)
-            if (reg.installing && navigator.serviceWorker.controller) {
-                newWorker = reg.installing;
-                newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed') {
-                        console.log('[SYD] Actualización instalada. Mostrando banner.');
-                        document.getElementById('updateBanner').classList.add('show');
-                    }
-                });
-            }
-
-            // CASO 3: Escuchar futuras actualizaciones que se publiquen
-            reg.addEventListener('updatefound', () => {
-                newWorker = reg.installing;
-                newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        console.log('[SYD] ¡Nueva versión de la app instalada! Mostrando banner.');
-                        document.getElementById('updateBanner').classList.add('show');
-                    }
-                });
-            });
+            console.log('[SYD] Service Worker registrado ✓');
         }).catch(err => console.log('[SYD] Fallo SW:', err));
 
+        // Si el SW cambia, recargar silenciosamente
         let refreshing;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (refreshing) return;
@@ -108,39 +75,11 @@ if ('serviceWorker' in navigator) {
         });
     };
 
-    // Registrar de inmediato si la página ya terminó de cargar
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
         registrarSW();
     } else {
         window.addEventListener('load', registrarSW);
     }
-}
-
-async function applyUpdate() {
-    document.getElementById('updateBanner').classList.remove('show');
-    document.getElementById('updateBanner').style.display = 'none';
-    localStorage.setItem('syd_sw_version', APP_VERSION);
-
-    let messageSent = false;
-
-    // Intento 1: usar la referencia directa al worker nuevo
-    if (newWorker && newWorker.state !== 'activated') {
-        try { newWorker.postMessage('SKIP_WAITING'); messageSent = true; } catch(e) {}
-    }
-
-    // Intento 2: buscar el worker en espera desde el registro
-    if (!messageSent && 'serviceWorker' in navigator) {
-        try {
-            const reg = await navigator.serviceWorker.getRegistration();
-            if (reg && reg.waiting) {
-                reg.waiting.postMessage('SKIP_WAITING');
-                messageSent = true;
-            }
-        } catch(e) {}
-    }
-
-    // Red de seguridad: si en 2s no se recargó la página, forzar recarga
-    setTimeout(() => { window.location.reload(); }, 2000);
 }
 
 

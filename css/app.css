@@ -506,37 +506,7 @@
         }
     
 
-/* UPDATE BANNER */
-#updateBanner {
-    display: none;
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 50px;
-    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
-    z-index: 999999;
-    font-size: 0.9rem;
-    font-weight: 600;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-#updateBanner:hover {
-    transform: translateX(-50%) scale(1.05);
-}
-#updateBanner.show {
-    display: flex;
-    animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-@keyframes slideUp {
-    from { bottom: -100px; opacity: 0; }
-    to { bottom: 20px; opacity: 1; }
-}
+
 
 @media(max-width: 600px) {
     .hide-mobile { display: none !important; }
