@@ -4,12 +4,6 @@
 // ══════════════════════════════════════
 let deferredPrompt = null;
 
-// Registrar Service Worker
-if('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-        .then(r => console.log('[SYD] SW registrado:', r.scope))
-        .catch(e => console.warn('[SYD] SW error:', e));
-}
 
 // Capturar evento de instalación (Android/Chrome)
 window.addEventListener('beforeinstallprompt', e => {
@@ -55,7 +49,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.23';
+const APP_VERSION = 'Beta 1.0.24';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
