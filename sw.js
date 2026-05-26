@@ -1,5 +1,5 @@
-// SYD Constructores — Service Worker Beta-1.0.24
-const CACHE_NAME = 'syd-app-Beta-1.0.24';
+// SYD Constructores — Service Worker Beta-1.0.25
+const CACHE_NAME = 'syd-app-Beta-1.0.25';
 
 const ASSETS = [
     './',
@@ -9,11 +9,12 @@ const ASSETS = [
 ];
 
 // Instalación: cachear recursos clave
+// NO usar skipWaiting() aquí — la activación la controla la UI
+// cuando el usuario pulsa "Actualizar" (mensaje SKIP_WAITING)
 self.addEventListener('install', e => {
     e.waitUntil(
         caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
     );
-    self.skipWaiting();
 });
 
 // Activación: limpiar caches viejos

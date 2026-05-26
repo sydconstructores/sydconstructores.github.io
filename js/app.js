@@ -49,7 +49,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.24';
+const APP_VERSION = 'Beta 1.0.25';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -68,15 +68,17 @@ if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').then(reg => {
             console.log('[SYD] Service Worker Registrado');
 
-            // CASO 1: Si ya hay una actualización descargada y esperando en segundo plano
-            if (reg.waiting) {
+            // CASO 1: Si ya hay una actualización descargada y esperando
+            // Solo mostrar si hay un controller activo (= es una ACTUALIZACIÓN, no primera carga)
+            if (reg.waiting && navigator.serviceWorker.controller) {
                 newWorker = reg.waiting;
                 console.log('[SYD] Actualización pendiente detectada (waiting). Mostrando banner.');
                 document.getElementById('updateBanner').classList.add('show');
             }
 
             // CASO 2: Si hay una actualización instalándose en este preciso instante
-            if (reg.installing) {
+            // Solo mostrar si hay un controller activo (= es una ACTUALIZACIÓN real)
+            if (reg.installing && navigator.serviceWorker.controller) {
                 newWorker = reg.installing;
                 newWorker.addEventListener('statechange', () => {
                     if (newWorker.state === 'installed') {
