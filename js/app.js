@@ -49,7 +49,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.25';
+const APP_VERSION = 'Beta 1.0.26';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -116,13 +116,31 @@ if ('serviceWorker' in navigator) {
     }
 }
 
-function applyUpdate() {
+async function applyUpdate() {
     document.getElementById('updateBanner').classList.remove('show');
     document.getElementById('updateBanner').style.display = 'none';
     localStorage.setItem('syd_sw_version', APP_VERSION);
-    if (newWorker) {
-        newWorker.postMessage('SKIP_WAITING');
+
+    let messageSent = false;
+
+    // Intento 1: usar la referencia directa al worker nuevo
+    if (newWorker && newWorker.state !== 'activated') {
+        try { newWorker.postMessage('SKIP_WAITING'); messageSent = true; } catch(e) {}
     }
+
+    // Intento 2: buscar el worker en espera desde el registro
+    if (!messageSent && 'serviceWorker' in navigator) {
+        try {
+            const reg = await navigator.serviceWorker.getRegistration();
+            if (reg && reg.waiting) {
+                reg.waiting.postMessage('SKIP_WAITING');
+                messageSent = true;
+            }
+        } catch(e) {}
+    }
+
+    // Red de seguridad: si en 2s no se recargó la página, forzar recarga
+    setTimeout(() => { window.location.reload(); }, 2000);
 }
 
 
