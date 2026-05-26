@@ -1,5 +1,5 @@
-// SYD Constructores — Service Worker Beta-1.0.27
-const CACHE_NAME = 'syd-app-Beta-1.0.27';
+// SYD Constructores — Service Worker Beta-1.0.28
+const CACHE_NAME = 'syd-app-Beta-1.0.28';
 
 const ASSETS = [
     './',
@@ -61,9 +61,4 @@ self.addEventListener('fetch', e => {
     );
 });
 
-// Mensajes: Escuchar cuando la UI nos dice que saltemos la espera
-self.addEventListener('message', event => {
-    if (event.data === 'SKIP_WAITING') {
-        self.skipWaiting();
-    }
-});
+

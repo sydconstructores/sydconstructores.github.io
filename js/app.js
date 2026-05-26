@@ -49,7 +49,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.27';
+const APP_VERSION = 'Beta 1.0.28';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -61,25 +61,9 @@ function fillVersionBadges() {
 fillVersionBadges();
 
 if ('serviceWorker' in navigator) {
-    const registrarSW = () => {
-        navigator.serviceWorker.register('./sw.js').then(reg => {
-            console.log('[SYD] Service Worker registrado ✓');
-        }).catch(err => console.log('[SYD] Fallo SW:', err));
-
-        // Si el SW cambia, recargar silenciosamente
-        let refreshing;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (refreshing) return;
-            refreshing = true;
-            window.location.reload();
-        });
-    };
-
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        registrarSW();
-    } else {
-        window.addEventListener('load', registrarSW);
-    }
+    navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('[SYD] Service Worker registrado ✓'))
+        .catch(err => console.log('[SYD] Fallo SW:', err));
 }
 
 
