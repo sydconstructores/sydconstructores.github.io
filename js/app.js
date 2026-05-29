@@ -52,7 +52,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.6';
+const APP_VERSION = 'v1.1.7';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -3127,7 +3127,7 @@ window.sendChatConsulta = async function() {
             fecha: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        await db.collection('obras').doc(currentObra).collection('comunicaciones').add(msgData);
+        await db.collection('obras').doc(currentObra.id).collection('comunicaciones').add(msgData);
 
         // Limpiar input
         document.getElementById('chatInputText').value = '';
@@ -3148,7 +3148,7 @@ function loadConsultas() {
 
     if(chatUnsubscribe) chatUnsubscribe();
 
-    chatUnsubscribe = db.collection('obras').doc(currentObra)
+    chatUnsubscribe = db.collection('obras').doc(currentObra.id)
         .collection('comunicaciones')
         .orderBy('fecha', 'asc')
         .onSnapshot(snap => {
