@@ -3061,6 +3061,7 @@ let chatUnsubscribe = null;
 let currentChatFotoUrl = null;
 
 window.openChat = function() {
+    alert("Iniciando chat...");
     if(!currentObra) {
         alert("Debes seleccionar una obra primero.");
         return;
