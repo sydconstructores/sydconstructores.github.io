@@ -217,6 +217,7 @@
         .progress-fill{height:100%;border-radius:4px;width:var(--pct);animation:fillProgress 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;}
         .progress-pct{font-size:0.75rem;font-weight:700;color:var(--accent2);width:34px;text-align:right}
         #versionBadge {
+            display: none;
             position: fixed;
             bottom: 8px;
             right: 12px;
