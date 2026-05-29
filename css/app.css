@@ -560,3 +560,56 @@
         .btn-dismiss{padding:12px 16px;background:rgba(255,255,255,0.07);color:#64748b;
             font-family:Inter,sans-serif;font-size:0.85rem;border:1px solid rgba(255,255,255,0.1);border-radius:12px;cursor:pointer}
     
+/* ══ ESTILOS DE CHAT / COMUNICACIONES ══ */
+.chat-msg {
+    display: flex;
+    flex-direction: column;
+    max-width: 85%;
+    animation: fadeIn 0.3s ease;
+}
+.chat-msg.master {
+    align-self: flex-end;
+}
+.chat-msg.cliente {
+    align-self: flex-start;
+}
+.chat-bubble {
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    word-wrap: break-word;
+    position: relative;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.chat-msg.master .chat-bubble {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+.chat-msg.cliente .chat-bubble {
+    background: #1e293b;
+    color: #f1f5f9;
+    border-bottom-left-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.chat-meta {
+    font-size: 0.65rem;
+    color: #64748b;
+    margin-top: 4px;
+    display: flex;
+    gap: 6px;
+}
+.chat-msg.master .chat-meta {
+    justify-content: flex-end;
+}
+.chat-msg.cliente .chat-meta {
+    justify-content: flex-start;
+}
+.chat-img-attachment {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-top: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}

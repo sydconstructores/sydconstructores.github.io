@@ -49,7 +49,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.0.0';
+const APP_VERSION = 'v1.1.0';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -3055,3 +3055,150 @@ window.verReporteOficial = function(docId) {
     document.body.appendChild(modal);
 };
 
+
+// ══════════════ MÓDULO DE COMUNICACIONES (CHAT) ══════════════
+let chatUnsubscribe = null;
+let currentChatFotoUrl = null;
+
+window.openChat = function() {
+    if(!currentObra) {
+        alert("Debes seleccionar una obra primero.");
+        return;
+    }
+    document.getElementById('chatModal').style.display = 'flex';
+    document.getElementById('chatSubtitle').textContent = document.getElementById('appSubtitle').textContent;
+    loadConsultas();
+};
+
+window.closeChat = function() {
+    document.getElementById('chatModal').style.display = 'none';
+    if(chatUnsubscribe) {
+        chatUnsubscribe();
+        chatUnsubscribe = null;
+    }
+};
+
+window.handleChatFotoSelect = function(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        currentChatFotoUrl = evt.target.result;
+        document.getElementById('chatFotoPreview').src = currentChatFotoUrl;
+        document.getElementById('chatFotoPreviewContainer').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+};
+
+window.clearChatFoto = function() {
+    currentChatFotoUrl = null;
+    document.getElementById('chatFotoInput').value = '';
+    document.getElementById('chatFotoPreviewContainer').style.display = 'none';
+};
+
+window.sendChatConsulta = async function() {
+    const text = document.getElementById('chatInputText').value.trim();
+    if(!text && !currentChatFotoUrl) return;
+
+    const btn = document.getElementById('btnSendChat');
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+
+    try {
+        let finalFotoUrl = null;
+        if(currentChatFotoUrl) {
+            // Subir a Firebase Storage
+            const file = document.getElementById('chatFotoInput').files[0];
+            const storageRef = firebase.storage().ref();
+            const fileName = 'comunicaciones/' + currentObra + '/' + Date.now() + '_' + file.name;
+            const fileRef = storageRef.child(fileName);
+            await fileRef.put(file);
+            finalFotoUrl = await fileRef.getDownloadURL();
+        }
+
+        const msgData = {
+            texto: text,
+            fotoUrl: finalFotoUrl,
+            remitente: currentUserRole,
+            email: currentUserEmail || '',
+            fecha: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        await db.collection('obras').doc(currentObra).collection('comunicaciones').add(msgData);
+
+        // Limpiar input
+        document.getElementById('chatInputText').value = '';
+        clearChatFoto();
+
+    } catch(e) {
+        console.error("Error al enviar mensaje:", e);
+        alert("Error al enviar el mensaje. Intenta de nuevo.");
+    }
+
+    btn.disabled = false;
+    btn.style.opacity = '1';
+};
+
+function loadConsultas() {
+    const container = document.getElementById('chatMessages');
+    container.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;">Cargando mensajes...</div>';
+
+    if(chatUnsubscribe) chatUnsubscribe();
+
+    chatUnsubscribe = db.collection('obras').doc(currentObra)
+        .collection('comunicaciones')
+        .orderBy('fecha', 'asc')
+        .onSnapshot(snap => {
+            container.innerHTML = '';
+            if(snap.empty) {
+                container.innerHTML = '<div style="text-align:center;color:#64748b;padding:20px;font-size:0.8rem;">Aún no hay mensajes.<br>¡Escribe algo para empezar!</div>';
+                return;
+            }
+
+            snap.forEach(doc => {
+                const data = doc.data();
+                const isMe = (data.remitente === currentUserRole);
+
+                const div = document.createElement('div');
+                // Estilos: si soy yo el que envía, se alinea a la derecha con estilo "master"
+                div.className = 'chat-msg ' + (isMe ? 'master' : 'cliente'); 
+                
+                // Formatear hora
+                let timeStr = '';
+                if(data.fecha) {
+                    const d = data.fecha.toDate();
+                    timeStr = d.toLocaleDateString('es-MX', {day:'numeric',month:'short'}) + ' ' + 
+                              d.toLocaleTimeString('es-MX', {hour:'2-digit',minute:'2-digit'});
+                }
+
+                let imgHtml = '';
+                if(data.fotoUrl) {
+                    imgHtml = `<img src="${data.fotoUrl}" class="chat-img-attachment" onclick="window.open('${data.fotoUrl}', '_blank')" style="max-width:100%; border-radius:8px; margin-top:8px; cursor:pointer;">`;
+                }
+
+                let nameStr = (data.remitente === 'MASTER') ? 'Ingeniero (MASTER)' : 'Cliente';
+                if(data.email && data.remitente !== 'MASTER') nameStr = data.email.split('@')[0];
+
+                div.innerHTML = `
+                    <div class="chat-bubble">
+                        ${data.texto ? `<div>${data.texto.replace(/\n/g, '<br>')}</div>` : ''}
+                        ${imgHtml}
+                    </div>
+                    <div class="chat-meta">
+                        <span>${nameStr}</span>
+                        <span>•</span>
+                        <span>${timeStr}</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            
+            // Auto-scroll al fondo
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 100);
+        }, err => {
+            console.error("Error al cargar consultas:", err);
+            container.innerHTML = '<div style="color:red;padding:20px;">Error al cargar mensajes.</div>';
+        });
+}
