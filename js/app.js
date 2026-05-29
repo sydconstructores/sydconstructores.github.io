@@ -52,7 +52,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.11';
+const APP_VERSION = 'v1.1.12';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -3148,6 +3148,7 @@ window.sendChatConsulta = async function() {
         console.error(err);
         alert('Error al enviar: ' + err.message);
     } finally {
+        btn.innerHTML = '➤';
         btn.disabled = false;
         btn.style.opacity = '1';
     }
