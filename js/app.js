@@ -52,7 +52,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.10';
+const APP_VERSION = 'v1.1.11';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -3115,13 +3115,19 @@ window.sendChatConsulta = async function() {
     try {
         let finalFotoUrl = null;
         if(currentChatFotoUrl && window.currentChatFile) {
-            // Subir a Firebase Storage
-            const file = window.currentChatFile;
-            const storageRef = firebase.storage().ref();
-            const fileName = 'comunicaciones/' + currentObra.id + '/' + Date.now() + '_' + file.name;
-            const fileRef = storageRef.child(fileName);
-            await fileRef.put(file);
-            finalFotoUrl = await fileRef.getDownloadURL();
+            btn.innerHTML = '...';
+            const formData = new FormData();
+            formData.append('key', 'ef497f7df24480c5df8656ba07fea071');
+            formData.append('image', currentChatFotoUrl.split(',')[1]);
+            
+            const resp = await fetch('https://api.imgbb.com/1/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await resp.json();
+            if(!result.success) throw new Error(result.error?.message || 'Error ImgBB');
+            
+            finalFotoUrl = result.data.display_url;
         }
 
         const msgData = {
