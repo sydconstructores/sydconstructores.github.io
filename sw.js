@@ -1,5 +1,5 @@
 // SYD Constructores — Service Worker v1.0.0
-const CACHE_NAME = 'syd-app-v1.1.1';
+const CACHE_NAME = 'syd-app-v1.1.2';
 
 const ASSETS = [
     './',
