@@ -49,7 +49,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'Beta 1.0.28';
+const APP_VERSION = 'v1.0.0';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -2014,18 +2014,6 @@ Devuelve ÚNICAMENTE este JSON sin markdown:
 }
 
 // ══ Envio de Informe por WhatsApp ══
-function forceUpdateApp() {
-    if (confirm('¿Quieres forzar la descarga de la última versión?\nEsto limpiará el caché y reiniciará la app.')) {
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) { registration.unregister(); }
-                window.location.reload(true);
-            });
-        } else {
-            window.location.reload(true);
-        }
-    }
-}
 
 async function saveReportEdits(btnElement) {
     if (!db) { alert('No hay conexión con la base de datos.'); return false; }
