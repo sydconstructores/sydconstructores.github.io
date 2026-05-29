@@ -52,7 +52,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.13';
+const APP_VERSION = 'v1.1.14';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -3194,6 +3194,8 @@ function loadConsultas() {
 
                 let nameStr = (data.remitente === 'MASTER') ? 'Ingeniero (MASTER)' : 'Cliente';
                 if(data.email && data.remitente !== 'MASTER') nameStr = data.email.split('@')[0];
+                
+                const deleteBtnHtml = isMe ? `<button onclick="deleteChatMessage('${doc.id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:14px; margin-left:8px; padding:0; display:inline-flex; align-items:center;" title="Borrar mensaje">🗑️</button>` : '';
 
                 div.innerHTML = `
                     <div class="chat-bubble">
@@ -3204,6 +3206,7 @@ function loadConsultas() {
                         <span>${nameStr}</span>
                         <span>•</span>
                         <span>${timeStr}</span>
+                        ${deleteBtnHtml}
                     </div>
                 `;
                 container.appendChild(div);
@@ -3218,3 +3221,14 @@ function loadConsultas() {
             container.innerHTML = '<div style="color:red;padding:20px;">Error al cargar mensajes.</div>';
         });
 }
+
+window.deleteChatMessage = async function(docId) {
+    if(confirm('¿Estás seguro de que quieres borrar este mensaje? Esta acción no se puede deshacer.')) {
+        try {
+            await db.collection('obras').doc(currentObra.id).collection('comunicaciones').doc(docId).delete();
+        } catch(err) {
+            console.error(err);
+            alert('Error al borrar el mensaje: ' + err.message);
+        }
+    }
+};
