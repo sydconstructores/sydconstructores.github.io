@@ -22,7 +22,10 @@ document.getElementById('btnInstall').addEventListener('click', async () => {
         document.getElementById('iosModal').style.display = 'flex';
         return;
     }
-    if(!deferredPrompt) return;
+    if(!deferredPrompt) {
+        showInstallInstructions();
+        return;
+    }
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if(outcome === 'accepted') {
@@ -49,7 +52,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.4';
+const APP_VERSION = 'v1.1.5';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
