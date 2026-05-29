@@ -49,7 +49,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.3';
+const APP_VERSION = 'v1.1.4';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -3119,8 +3119,8 @@ window.sendChatConsulta = async function() {
         const msgData = {
             texto: text,
             fotoUrl: finalFotoUrl,
-            remitente: currentUserRole,
-            email: currentUserEmail || '',
+            remitente: session ? session.role : 'CLIENTE',
+            email: (session && session.email) ? session.email : '',
             fecha: firebase.firestore.FieldValue.serverTimestamp()
         };
 
@@ -3157,7 +3157,8 @@ function loadConsultas() {
 
             snap.forEach(doc => {
                 const data = doc.data();
-                const isMe = (data.remitente === currentUserRole);
+                const myRole = session ? session.role : 'CLIENTE';
+                const isMe = (data.remitente === myRole);
 
                 const div = document.createElement('div');
                 // Estilos: si soy yo el que envía, se alinea a la derecha con estilo "master"
