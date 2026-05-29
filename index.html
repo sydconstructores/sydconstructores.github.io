@@ -35,7 +35,7 @@
     
 
 
-<link rel="stylesheet" href="css/app.css?v=v1.1.2">
+<link rel="stylesheet" href="css/app.css?v=v1.1.3">
 </head>
 <body>
 <div id="versionBadge"></div>
@@ -274,34 +274,7 @@
                     Guardar Configuración
                 </button>
             </div>
-
-            <div id="dictationStatus" style="font-size:0.65rem; color:#93c5fd; margin-top:10px; text-align:center; display:none;">Escuchando... Di algo sobre la obra</div><!-- ══ MODAL DE COMUNICACIONES (CHAT) ══ -->
-<div id="chatModal" style="display:none; position:fixed; inset:0; background-color:#0f172a; z-index:9999; flex-direction:column;">
-    <div style="background:linear-gradient(180deg, rgba(30,41,59,0.95) 0%, rgba(15,23,42,0.95) 100%); padding:14px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:10px;">
-        <button onclick="closeChat()" style="background:none; border:none; color:#60a5fa; font-size:1.5rem; cursor:pointer; padding:0 10px;">←</button>
-        <div style="flex:1;">
-            <div style="font-weight:800; font-size:1.1rem;">💬 Comunicaciones</div>
-            <div style="font-size:0.7rem; color:#94a3b8;" id="chatSubtitle">Cargando...</div>
-        </div>
-    </div>
-    
-    <div id="chatMessages" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:16px; background-color:#0b1120;">
-        <!-- Mensajes se inyectarán aquí -->
-    </div>
-    
-    <div style="background:#1e293b; border-top:1px solid rgba(255,255,255,0.05); padding:10px; display:flex; gap:8px; align-items:flex-end;">
-        <input type="file" id="chatFotoInput" accept="image/*" style="display:none;" onchange="handleChatFotoSelect(event)">
-        <button onclick="document.getElementById('chatFotoInput').click()" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#94a3b8; width:44px; height:44px; border-radius:22px; flex-shrink:0; cursor:pointer; font-size:1.2rem; display:flex; align-items:center; justify-content:center;">📎</button>
-        <div style="flex:1; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); border-radius:20px; display:flex; flex-direction:column; padding:4px 12px; min-height:44px;">
-            <div id="chatFotoPreviewContainer" style="display:none; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); position:relative;">
-                <img id="chatFotoPreview" src="" style="height:60px; border-radius:8px; object-fit:cover;">
-                <button onclick="clearChatFoto()" style="position:absolute; top:4px; right:0; background:red; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:10px;">✕</button>
-            </div>
-            <textarea id="chatInputText" placeholder="Escribe un mensaje..." style="background:none; border:none; color:white; outline:none; resize:none; padding:8px 0; font-family:inherit; font-size:0.9rem; max-height:100px; width:100%;" rows="1"></textarea>
-        </div>
-        <button onclick="sendChatConsulta()" id="btnSendChat" style="background:#3b82f6; border:none; color:white; width:44px; height:44px; border-radius:22px; flex-shrink:0; cursor:pointer; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(59,130,246,0.3);">➤</button>
-    </div>
-</div>
+            <div id="dictationStatus" style="font-size:0.65rem; color:#93c5fd; margin-top:10px; text-align:center; display:none;">Escuchando... Di algo sobre la obra</div>
 
 
             <div id="clearNotesBtn" style="display:none; text-align:center; margin-top:12px;">
@@ -479,8 +452,36 @@
 
 
 
+<!-- ══ MODAL DE COMUNICACIONES (CHAT) ══ -->
+<div id="chatModal" style="display:none; position:fixed; inset:0; background-color:#0f172a; z-index:9999; flex-direction:column;">
+    <div style="background:linear-gradient(180deg, rgba(30,41,59,0.95) 0%, rgba(15,23,42,0.95) 100%); padding:14px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:10px;">
+        <button onclick="closeChat()" style="background:none; border:none; color:#60a5fa; font-size:1.5rem; cursor:pointer; padding:0 10px;">←</button>
+        <div style="flex:1;">
+            <div style="font-weight:800; font-size:1.1rem;">💬 Comunicaciones</div>
+            <div style="font-size:0.7rem; color:#94a3b8;" id="chatSubtitle">Cargando...</div>
+        </div>
+    </div>
+    
+    <div id="chatMessages" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:16px; background-color:#0b1120;">
+        <!-- Mensajes se inyectarán aquí -->
+    </div>
+    
+    <div style="background:#1e293b; border-top:1px solid rgba(255,255,255,0.05); padding:10px; display:flex; gap:8px; align-items:flex-end;">
+        <input type="file" id="chatFotoInput" accept="image/*" style="display:none;" onchange="handleChatFotoSelect(event)">
+        <button onclick="document.getElementById('chatFotoInput').click()" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#94a3b8; width:44px; height:44px; border-radius:22px; flex-shrink:0; cursor:pointer; font-size:1.2rem; display:flex; align-items:center; justify-content:center;">📎</button>
+        <div style="flex:1; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); border-radius:20px; display:flex; flex-direction:column; padding:4px 12px; min-height:44px;">
+            <div id="chatFotoPreviewContainer" style="display:none; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); position:relative;">
+                <img id="chatFotoPreview" src="" style="height:60px; border-radius:8px; object-fit:cover;">
+                <button onclick="clearChatFoto()" style="position:absolute; top:4px; right:0; background:red; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:10px;">✕</button>
+            </div>
+            <textarea id="chatInputText" placeholder="Escribe un mensaje..." style="background:none; border:none; color:white; outline:none; resize:none; padding:8px 0; font-family:inherit; font-size:0.9rem; max-height:100px; width:100%;" rows="1"></textarea>
+        </div>
+        <button onclick="sendChatConsulta()" id="btnSendChat" style="background:#3b82f6; border:none; color:white; width:44px; height:44px; border-radius:22px; flex-shrink:0; cursor:pointer; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(59,130,246,0.3);">➤</button>
+    </div>
+</div>
+
 <script src="js/config.js"></script>
-<script src="js/app.js?v=v1.1.2"></script>
+<script src="js/app.js?v=v1.1.3"></script>
 </body>
 </html>
 

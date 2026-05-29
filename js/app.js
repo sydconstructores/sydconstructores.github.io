@@ -49,7 +49,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.2';
+const APP_VERSION = 'v1.1.3';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -3061,7 +3061,6 @@ let chatUnsubscribe = null;
 let currentChatFotoUrl = null;
 
 window.openChat = function() {
-    alert("Iniciando chat...");
     if(!currentObra) {
         alert("Debes seleccionar una obra primero.");
         return;
