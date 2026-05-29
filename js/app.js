@@ -52,7 +52,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.8';
+const APP_VERSION = 'v1.1.9';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
