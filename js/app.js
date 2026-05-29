@@ -52,7 +52,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.9';
+const APP_VERSION = 'v1.1.10';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -3081,9 +3081,12 @@ window.closeChat = function() {
     }
 };
 
+window.currentChatFile = null;
+
 window.handleChatFotoSelect = function(e) {
     const file = e.target.files[0];
     if(!file) return;
+    window.currentChatFile = file;
     const reader = new FileReader();
     reader.onload = function(evt) {
         currentChatFotoUrl = evt.target.result;
@@ -3095,7 +3098,9 @@ window.handleChatFotoSelect = function(e) {
 
 window.clearChatFoto = function() {
     currentChatFotoUrl = null;
+    window.currentChatFile = null;
     document.getElementById('chatFotoInput').value = '';
+    document.getElementById('chatCameraInput').value = '';
     document.getElementById('chatFotoPreviewContainer').style.display = 'none';
 };
 
@@ -3109,11 +3114,11 @@ window.sendChatConsulta = async function() {
 
     try {
         let finalFotoUrl = null;
-        if(currentChatFotoUrl) {
+        if(currentChatFotoUrl && window.currentChatFile) {
             // Subir a Firebase Storage
-            const file = document.getElementById('chatFotoInput').files[0];
+            const file = window.currentChatFile;
             const storageRef = firebase.storage().ref();
-            const fileName = 'comunicaciones/' + currentObra + '/' + Date.now() + '_' + file.name;
+            const fileName = 'comunicaciones/' + currentObra.id + '/' + Date.now() + '_' + file.name;
             const fileRef = storageRef.child(fileName);
             await fileRef.put(file);
             finalFotoUrl = await fileRef.getDownloadURL();
