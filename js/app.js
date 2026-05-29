@@ -52,7 +52,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.5';
+const APP_VERSION = 'v1.1.6';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -3133,13 +3133,13 @@ window.sendChatConsulta = async function() {
         document.getElementById('chatInputText').value = '';
         clearChatFoto();
 
-    } catch(e) {
-        console.error("Error al enviar mensaje:", e);
-        alert("Error al enviar el mensaje. Intenta de nuevo.");
+    } catch(err) {
+        console.error(err);
+        alert('Error al enviar: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.style.opacity = '1';
     }
-
-    btn.disabled = false;
-    btn.style.opacity = '1';
 };
 
 function loadConsultas() {
