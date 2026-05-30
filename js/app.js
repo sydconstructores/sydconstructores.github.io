@@ -52,7 +52,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.16';
+const APP_VERSION = 'v1.1.17';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -3021,6 +3021,24 @@ window.cargarHistorialReportes = async function() {
     } catch(e) {
         console.error('Error cargando reportes:', e);
         listWrap.innerHTML = '<div style="text-align:center; padding:20px; color:#dc2626; font-size:0.85rem;">Error al cargar reportes.</div>';
+    }
+};
+
+
+window.deleteReportFromList = async function(id, btn) {
+    if (!confirm('¿Estás seguro de que deseas eliminar este reporte?')) return;
+    try {
+        btn.innerHTML = '...';
+        await db.collection('informes_compartidos').doc(id).delete();
+        const card = btn.closest('.zone-card');
+        if(card) card.remove();
+        if(window._informesSnapshot && window._informesSnapshot.docs) {
+            window._informesSnapshot.docs = window._informesSnapshot.docs.filter(d => d.id !== id);
+        }
+    } catch(err) {
+        console.error(err);
+        alert('Error al eliminar: ' + err.message);
+        btn.innerHTML = '🗑️';
     }
 };
 
