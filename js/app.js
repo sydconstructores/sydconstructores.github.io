@@ -1,11 +1,11 @@
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// PWA â€” Service Worker + Install Banner
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
+// PWA — Service Worker + Install Banner
+// ══════════════════════════════════════
 let deferredPrompt = null;
 
 
-// Capturar evento de instalaciÃ³n (Android/Chrome)
+// Capturar evento de instalación (Android/Chrome)
 window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     deferredPrompt = e;
@@ -47,7 +47,7 @@ if(/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream && !window.n
 window.addEventListener('appinstalled', () => {
     localStorage.setItem('syd_installed','1');
     document.getElementById('installBanner').style.display = 'none';
-    console.log('[SYD] App instalada âœ“');
+    console.log('[SYD] App instalada ✓');
 });
 
 
@@ -65,13 +65,13 @@ fillVersionBadges();
 
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js')
-        .then(() => console.log('[SYD] Service Worker registrado âœ“'))
+        .then(() => console.log('[SYD] Service Worker registrado ✓'))
         .catch(err => console.log('[SYD] Fallo SW:', err));
 }
 
 
 
-// â•â• NOTIFICACIONES PUSH â•â•
+// ══ NOTIFICACIONES PUSH ══
 
 // Verificar estado de notificaciones al cargar la app
 async function checkNotificationState() {
@@ -81,17 +81,17 @@ async function checkNotificationState() {
 
     // Si el navegador ya tiene permiso concedido, renovar token silenciosamente
     if ('Notification' in window && Notification.permission === 'granted') {
-        btn.innerHTML = 'âœ… Notificaciones Activas';
+        btn.innerHTML = '✅ Notificaciones Activas';
         btn.style.background = 'rgba(16,185,129,0.3)';
         btn.onclick = null;
         // Renovar token silenciosamente en segundo plano
         silentTokenRefresh();
     } else if ('Notification' in window && Notification.permission === 'denied') {
-        btn.textContent = 'ðŸ”• Bloqueadas';
+        btn.textContent = '🔕 Bloqueadas';
         btn.style.background = 'rgba(239,68,68,0.15)';
         btn.onclick = null;
     }
-    // Si es 'default', el botÃ³n se queda como "Activar Notificaciones" con el onclick normal
+    // Si es 'default', el botón se queda como "Activar Notificaciones" con el onclick normal
 }
 
 // Renovar token FCM sin molestar al usuario
@@ -115,18 +115,18 @@ async function silentTokenRefresh() {
             console.log('[SYD] Token renovado silenciosamente para', obraId);
         }
     } catch(e) {
-        console.warn('[SYD] Token refresh silencioso fallÃ³ (no crÃ­tico):', e.message);
+        console.warn('[SYD] Token refresh silencioso falló (no crítico):', e.message);
     }
 }
 
 async function requestPushPermission() {
     try {
         const btn = document.getElementById('btnNotificaciones');
-        btn.textContent = 'â³ Solicitando...';
+        btn.textContent = '⏳ Solicitando...';
         
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
-            console.log('[SYD] Permiso de notificaciÃ³n concedido.');
+            console.log('[SYD] Permiso de notificación concedido.');
             
             const swReg = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
             const messaging = firebase.messaging();
@@ -145,19 +145,19 @@ async function requestPushPermission() {
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                btn.innerHTML = 'âœ… Notificaciones Activas';
+                btn.innerHTML = '✅ Notificaciones Activas';
                 btn.style.background = 'rgba(16,185,129,0.3)';
                 btn.onclick = null;
                 console.log('[SYD] Token guardado en obras/' + obraId + '/tokens/' + session.email);
             } else {
-                btn.textContent = 'âŒ Error de Token';
+                btn.textContent = '❌ Error de Token';
             }
         } else {
-            btn.textContent = 'ðŸ”• Notificaciones Bloqueadas';
+            btn.textContent = '🔕 Notificaciones Bloqueadas';
         }
     } catch (error) {
         console.error('[SYD] Error al solicitar permiso:', error);
-        document.getElementById('btnNotificaciones').textContent = 'âŒ Error: ' + error.message;
+        document.getElementById('btnNotificaciones').textContent = '❌ Error: ' + error.message;
     }
 }
 
@@ -168,16 +168,16 @@ if (typeof firebase !== 'undefined' && firebase.messaging) {
         messaging.onMessage((payload) => {
             console.log('[SYD] Mensaje recibido en primer plano:', payload);
             // Mostrar alerta en pantalla
-            alert('ðŸ”” SYD: ' + (payload.notification?.title || 'Nueva NotificaciÃ³n') + '\n' + (payload.notification?.body || ''));
+            alert('🔔 SYD: ' + (payload.notification?.title || 'Nueva Notificación') + '\n' + (payload.notification?.body || ''));
         });
     } catch(e) { console.warn('[SYD] Error iniciando messaging en primer plano:', e); }
 }
 
 
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// BITACORA DE OBRA â€” Modulo Master
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
+// BITACORA DE OBRA — Modulo Master
+// ══════════════════════════════════════
 let bitacoraSemana = 1;
 let bitacoraRecognition = null;
 
@@ -206,7 +206,7 @@ async function guardarNotaBitacora() {
     const input = document.getElementById('bitacoraInput');
     const texto = input.value.trim();
     if(!texto) { alert('Escribe algo antes de guardar.'); return; }
-    if(!db || !session || !session.obra) { alert('No hay conexiÃ³n.'); return; }
+    if(!db || !session || !session.obra) { alert('No hay conexión.'); return; }
     
     try {
         const now = new Date();
@@ -255,7 +255,7 @@ async function cargarNotasBitacora() {
                             </div>
                             <div style="font-size:0.85rem; color:#e2e8f0; line-height:1.5;">${d.texto}</div>
                         </div>
-                        <button onclick="borrarNotaBitacora('${doc.id}')" style="background:none; border:none; color:rgba(239,68,68,0.6); cursor:pointer; font-size:1rem; padding:4px 8px; flex-shrink:0;" title="Eliminar">âœ•</button>
+                        <button onclick="borrarNotaBitacora('${doc.id}')" style="background:none; border:none; color:rgba(239,68,68,0.6); cursor:pointer; font-size:1rem; padding:4px 8px; flex-shrink:0;" title="Eliminar">✕</button>
                     </div>
                 </div>`;
         });
@@ -267,7 +267,7 @@ async function cargarNotasBitacora() {
 }
 
 async function borrarNotaBitacora(id) {
-    if(!confirm('Â¿Eliminar esta nota?')) return;
+    if(!confirm('¿Eliminar esta nota?')) return;
     try {
         await db.collection('obras').doc(session.obra).collection('bitacora').doc(id).delete();
         cargarNotasBitacora();
@@ -287,11 +287,11 @@ function dictarNotaBitacora() {
         };
         bitacoraRecognition.onstart = () => {
             document.getElementById('btnDictarBitacora').style.background = '#ef4444';
-            document.getElementById('btnDictarBitacora').textContent = 'ðŸ›‘';
+            document.getElementById('btnDictarBitacora').textContent = '🛑';
         };
         bitacoraRecognition.onend = () => {
             document.getElementById('btnDictarBitacora').style.background = 'rgba(255,255,255,0.08)';
-            document.getElementById('btnDictarBitacora').textContent = 'ðŸŽ¤';
+            document.getElementById('btnDictarBitacora').textContent = '🎤';
         };
     }
     try { bitacoraRecognition.start(); } catch(e) { bitacoraRecognition.stop(); }
@@ -301,7 +301,7 @@ async function generarInformeBitacora() {
     if(!db || !session || !session.obra) return;
     const btn = document.getElementById('btnGenerarBitacora');
     const oldText = btn.innerHTML;
-    btn.innerHTML = 'â³ Generando...';
+    btn.innerHTML = '⏳ Generando...';
     btn.disabled = true;
     
     try {
@@ -325,12 +325,12 @@ async function generarInformeBitacora() {
         const informeHtml = `
             <div style="font-family:'Inter',Arial,sans-serif; max-width:700px; margin:0 auto; padding:20px;">
                 <div style="background:linear-gradient(135deg,#1e3a8a,#1e1b4b); color:#fff; padding:24px; border-radius:16px 16px 0 0;">
-                    <div style="font-size:1.3rem; font-weight:800;">ðŸ—ï¸ ${obraName}</div>
-                    <div style="font-size:0.85rem; opacity:0.8; margin-top:4px;">BitÃ¡cora de Obra â€” Semana ${bitacoraSemana}</div>
+                    <div style="font-size:1.3rem; font-weight:800;">🏗️ ${obraName}</div>
+                    <div style="font-size:0.85rem; opacity:0.8; margin-top:4px;">Bitácora de Obra — Semana ${bitacoraSemana}</div>
                     <div style="font-size:0.7rem; opacity:0.6; margin-top:8px;">Generado: ${now.toLocaleDateString('es-MX')} a las ${now.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'})}</div>
                 </div>
                 <div style="background:#fff; border:1px solid #e2e8f0; border-top:none; border-radius:0 0 16px 16px; padding:20px;">
-                    <div style="font-size:0.9rem; font-weight:700; color:#1e293b; margin-bottom:12px;">ðŸ“ Registro de Actividades (${notas.length} notas)</div>
+                    <div style="font-size:0.9rem; font-weight:700; color:#1e293b; margin-bottom:12px;">📝 Registro de Actividades (${notas.length} notas)</div>
                     <table style="width:100%; border-collapse:collapse;">
                         <thead><tr style="background:#f8fafc;">
                             <th style="padding:10px 12px; text-align:left; font-size:0.7rem; color:#64748b; text-transform:uppercase; font-weight:700;">Fecha</th>
@@ -339,7 +339,7 @@ async function generarInformeBitacora() {
                         <tbody>${notasHtml}</tbody>
                     </table>
                     <div style="margin-top:20px; padding-top:16px; border-top:1px solid #e2e8f0; font-size:0.7rem; color:#94a3b8; text-align:center;">
-                        SYD Constructores Â· Informe generado automÃ¡ticamente
+                        SYD Constructores · Informe generado automáticamente
                     </div>
                 </div>
             </div>`;
@@ -348,7 +348,7 @@ async function generarInformeBitacora() {
             semana: bitacoraSemana,
             obra: session.obra,
             obraName: obraName,
-            titulo: 'BitÃ¡cora Semana ' + bitacoraSemana + ' - ' + obraName,
+            titulo: 'Bitácora Semana ' + bitacoraSemana + ' - ' + obraName,
             totalNotas: notas.length,
             html: informeHtml,
             fechaGenerado: firebase.firestore.FieldValue.serverTimestamp(),
@@ -377,8 +377,8 @@ function mostrarInformeBitacora(html, docId) {
     const toolbar = document.createElement('div');
     toolbar.style.cssText = 'position:sticky; top:0; z-index:10; background:#1e293b; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 10px rgba(0,0,0,0.3);';
     toolbar.innerHTML = `
-        <button onclick="document.getElementById('bitacoraModal').remove()" style="background:rgba(255,255,255,0.1); color:#fff; border:none; padding:8px 16px; border-radius:10px; font-weight:700; cursor:pointer;">â† Volver</button>
-        <div style="font-size:0.75rem; color:#10b981; font-weight:700;">âœ… Guardado en Base de Datos</div>`;
+        <button onclick="document.getElementById('bitacoraModal').remove()" style="background:rgba(255,255,255,0.1); color:#fff; border:none; padding:8px 16px; border-radius:10px; font-weight:700; cursor:pointer;">← Volver</button>
+        <div style="font-size:0.75rem; color:#10b981; font-weight:700;">✅ Guardado en Base de Datos</div>`;
     
     const content = document.createElement('div');
     content.style.cssText = 'padding:20px;';
@@ -403,7 +403,7 @@ async function verHistorialBitacora() {
     container.style.cssText = 'background:#1f2937; width:100%; max-width:500px; max-height:80vh; border-radius:24px; padding:24px; overflow-y:auto; border:1px solid rgba(255,255,255,0.1);';
     container.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h3 style="margin:0; font-size:1rem; color:#fff;">ðŸ“… Historial de Informes</h3>
+            <h3 style="margin:0; font-size:1rem; color:#fff;">📅 Historial de Informes</h3>
             <button onclick="document.getElementById('bitacoraHistModal').remove()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#94a3b8;">&times;</button>
         </div>
         <div id="bitacoraHistList"><div style="text-align:center; padding:20px; color:#64748b;">Cargando...</div></div>`;
@@ -417,14 +417,14 @@ async function verHistorialBitacora() {
             .orderBy('fechaGenerado', 'desc').limit(20).get();
         
         const list = document.getElementById('bitacoraHistList');
-        if(snap.empty) { list.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">No hay informes generados aÃºn.</div>'; return; }
+        if(snap.empty) { list.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">No hay informes generados aún.</div>'; return; }
         
         let h = '';
         snap.forEach(doc => {
             const d = doc.data();
             h += `<div onclick="abrirInformeBitacora('${doc.id}')" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:14px; cursor:pointer; margin-bottom:8px;">
                 <div style="font-size:0.85rem; font-weight:700; color:#fff;">${d.titulo || ''}</div>
-                <div style="font-size:0.7rem; color:#64748b; margin-top:4px;">${d.fechaTexto || ''} Â· ${d.totalNotas || 0} notas</div>
+                <div style="font-size:0.7rem; color:#64748b; margin-top:4px;">${d.fechaTexto || ''} · ${d.totalNotas || 0} notas</div>
             </div>`;
         });
         list.innerHTML = h;
@@ -442,17 +442,17 @@ async function abrirInformeBitacora(docId) {
 }
 
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// â•â• FIREBASE CONFIG â€” PEGA TUS VALORES AQUÃ â•â•
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
+// ══ FIREBASE CONFIG — PEGA TUS VALORES AQUÍ ══
+// ══════════════════════════════════════
 // 1. Ve a: https://console.firebase.google.com
 // 2. Crea un proyecto llamado "syd-constructores"
 // 3. Crea una app Web (</>)
 // 4. Crea Firestore Database (modo de prueba)
-// 5. Copia la config y pega los valores aquÃ­:
+// 5. Copia la config y pega los valores aquí:
 
 
-// â•â• Firebase init (graceful â€” la app funciona sin Firebase) â•â•
+// ══ Firebase init (graceful — la app funciona sin Firebase) ══
 let db = null;
 try {
     if (!FIREBASE_CONFIG.apiKey.includes('PEGA_AQUI')) {
@@ -460,11 +460,11 @@ try {
         db = firebase.firestore();
         console.log('[SYD] Firebase conectado');
     } else {
-        console.log('[SYD] Firebase no configurado â€” modo local');
+        console.log('[SYD] Firebase no configurado — modo local');
     }
 } catch(e) { console.warn('[SYD] Firebase error:', e.message); }
 
-// â•â• Log de acceso a Firestore â•â•
+// ══ Log de acceso a Firestore ══
 async function logAccess(email, role, action='login', extra={}) {
     if (!db) return;
     try {
@@ -479,7 +479,7 @@ async function logAccess(email, role, action='login', extra={}) {
     } catch(e) { console.warn('Log error:', e.message); }
 }
 
-// â•â• Render panel REGISTROS FULL (NUEVO) â•â•
+// ══ Render panel REGISTROS FULL (NUEVO) ══
 async function renderRegistrosCompletos(el) {
     if (!el) el = document.getElementById('accesosContent');
     if (!el) return;
@@ -487,20 +487,20 @@ async function renderRegistrosCompletos(el) {
     el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">Cargando...</div>';
     try {
         const snap = await db.collection('access_logs').orderBy('timestamp','desc').limit(50).get();
-        if (snap.empty) { el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)">Sin registros aÃºn</div>'; return; }
-        const roleIcon = {master:'âš¡',observer:'ðŸ‘',client:'ðŸ '};
+        if (snap.empty) { el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)">Sin registros aún</div>'; return; }
+        const roleIcon = {master:'⚡',observer:'👁',client:'🏠'};
         const actionColor = {login:'#10b981', logout:'#64748b', registro:'#8b5cf6', registro_y_login:'#8b5cf6'};
-        const actionLabel = {login:'EntrÃ³', logout:'SaliÃ³', registro:'Nuevo Registro', registro_y_login:'Nuevo Registro'};
+        const actionLabel = {login:'Entró', logout:'Salió', registro:'Nuevo Registro', registro_y_login:'Nuevo Registro'};
         
         let html = `
             <div style="margin-bottom:12px; display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center;">
                 <div style="display:flex; align-items:center; gap:12px;">
-                    <div style="font-size:0.7rem;color:var(--muted);">${snap.size} registro(s) Â· Ãºltimos 50</div>
+                    <div style="font-size:0.7rem;color:var(--muted);">${snap.size} registro(s) · últimos 50</div>
                     <button id="btnDeleteLogs" onclick="deleteSelectedLogs()" style="display:none; padding:5px 12px; background:#ef4444; color:#fff; border:none; border-radius:6px; font-size:0.7rem; font-weight:700; cursor:pointer;">
-                        ðŸ—‘ï¸ Eliminar seleccionados
+                        🗑️ Eliminar seleccionados
                     </button>
                 </div>
-                <input type="text" id="filterRegistros" placeholder="BÃºsqueda global..." 
+                <input type="text" id="filterRegistros" placeholder="Búsqueda global..." 
                        style="padding:6px 12px; border-radius:6px; border:1px solid var(--border); background:rgba(0,0,0,0.2); color:#fff; width: 220px; font-size:0.8rem; font-family:Inter,sans-serif;" 
                        onkeyup="filterRegistrosTable()">
             </div>
@@ -511,11 +511,11 @@ async function renderRegistrosCompletos(el) {
                             <th style="padding:10px 12px; width:30px;"><input type="checkbox" id="selectAllLogs" onclick="toggleSelectAllLogs(this)"></th>
                             <th style="padding:10px 12px; color:var(--muted); font-weight:600; vertical-align:top;">Fecha</th>
                             <th style="padding:10px 12px; color:var(--muted); font-weight:600; vertical-align:top;">
-                                AcciÃ³n<br>
+                                Acción<br>
                                 <select id="filterAccion" onchange="filterRegistrosTable()" style="background:var(--surface); color:#cbd5e1; border:1px solid var(--border); border-radius:4px; font-size:0.65rem; margin-top:6px; padding:3px; outline:none;">
                                     <option value="">Todas</option>
-                                    <option value="entrÃ³">EntrÃ³</option>
-                                    <option value="saliÃ³">SaliÃ³</option>
+                                    <option value="entró">Entró</option>
+                                    <option value="salió">Salió</option>
                                     <option value="nuevo registro">Nuevo Registro</option>
                                 </select>
                             </th>
@@ -550,11 +550,11 @@ async function renderRegistrosCompletos(el) {
                             <td class="col-accion" style="padding:10px 12px;">
                                 <span style="font-size:0.65rem;background:${color}22;color:${color};padding:2px 8px;border-radius:20px">${label}</span>
                             </td>
-                            <td class="col-usuario" style="padding:10px 12px; font-weight:600;">${d.email||'â€”'}</td>
-                            <td class="col-rol" style="padding:10px 12px;">${roleIcon[d.role]||''} ${d.role||'â€”'}</td>
-                            <td class="col-obra" style="padding:10px 12px; color:#a78bfa;">${d.obra || 'â€”'}</td>
+                            <td class="col-usuario" style="padding:10px 12px; font-weight:600;">${d.email||'—'}</td>
+                            <td class="col-rol" style="padding:10px 12px;">${roleIcon[d.role]||''} ${d.role||'—'}</td>
+                            <td class="col-obra" style="padding:10px 12px; color:#a78bfa;">${d.obra || '—'}</td>
                             <td class="col-detalles" style="padding:10px 12px; color:#a78bfa;">
-                                ${hasDetails ? `Nombre: ${d.nombre} | Clave: ${d.password} | WhatsApp: ${d.telefono||'â€”'}` : 'â€”'}
+                                ${hasDetails ? `Nombre: ${d.nombre} | Clave: ${d.password} | WhatsApp: ${d.telefono||'—'}` : '—'}
                             </td>
                         </tr>
             `;
@@ -601,11 +601,11 @@ function updateLogDeleteButton() {
 }
 
 async function deleteSelectedLogs() {
-    if (!confirm('Â¿Seguro que deseas eliminar los registros seleccionados?\nEsto tambiÃ©n eliminarÃ¡ su acceso al sistema.')) return;
+    if (!confirm('¿Seguro que deseas eliminar los registros seleccionados?\nEsto también eliminará su acceso al sistema.')) return;
     const ids = Array.from(document.querySelectorAll('.log-check:checked')).map(c => c.value);
     const btn = document.getElementById('btnDeleteLogs');
     btn.disabled = true;
-    btn.textContent = 'â³ Eliminando...';
+    btn.textContent = '⏳ Eliminando...';
 
     try {
         const batch = db.batch();
@@ -614,7 +614,7 @@ async function deleteSelectedLogs() {
             // 1. Borrar de access_logs
             batch.delete(db.collection('access_logs').doc(id));
 
-            // 2. Buscar y borrar tambiÃ©n de 'clientes' (por el email del log)
+            // 2. Buscar y borrar también de 'clientes' (por el email del log)
             try {
                 const logDoc = await db.collection('access_logs').doc(id).get();
                 if (logDoc.exists && logDoc.data().email) {
@@ -629,16 +629,16 @@ async function deleteSelectedLogs() {
 
         await batch.commit();
         await renderRegistrosCompletos();
-        alert(`âœ… ${ids.length} registro(s) eliminado(s) correctamente.`);
+        alert(`✅ ${ids.length} registro(s) eliminado(s) correctamente.`);
     } catch(e) {
         alert('Error al eliminar: ' + e.message);
         btn.disabled = false;
-        btn.textContent = 'ðŸ—‘ï¸ Eliminar seleccionados';
+        btn.textContent = '🗑️ Eliminar seleccionados';
     }
 }
 
 
-// â•â• Log de cambios en avance (Punto 3) â•â•
+// ══ Log de cambios en avance (Punto 3) ══
 let _cambioTimer = null;
 let _originalValorAnterior = {};
 
@@ -651,7 +651,7 @@ function updateProgress(zIdx, val) {
     }
     
     projectData[zIdx].progress[currentWeek-1] = val;
-    // Debounce: guardar en Firebase 1.5s despuÃ©s de soltar el slider o dejar de pulsar botones
+    // Debounce: guardar en Firebase 1.5s después de soltar el slider o dejar de pulsar botones
     clearTimeout(_cambioTimer);
     _cambioTimer = setTimeout(() => {
         const initialVal = _originalValorAnterior[zIdx];
@@ -699,46 +699,42 @@ async function logCambio(zIdx, valorAnterior, valorNuevo) {
     } catch(e) { console.warn('logCambio error:', e.message); }
 }
 
-// â•â• Render historial de cambios â•â•
+// ══ Render historial de cambios ══
 async function renderHistorial(el) {
     if(!db) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px">Firebase no conectado</div>'; return; }
     el.innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted)">Cargando historial...</div>';
     try {
-        const obraId = (typeof currentObra !== 'undefined' && currentObra ? currentObra.id : session.obra) || 'SAUCES';
-        const snap = await db.collection('obras').doc(obraId)
+        const snap = await db.collection('obras').doc('SAUCES')
             .collection('cambios_avance')
             .orderBy('timestamp','desc').limit(60).get();
-        if(snap.empty) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted)">Sin cambios registrados aÃºn</div>'; return; }
+        if(snap.empty) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted)">Sin cambios registrados aún</div>'; return; }
         const ZONE_C = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444'];
-        let html = `<div style="font-size:0.7rem;color:var(--muted);margin-bottom:10px">${snap.size} cambio(s) â€“ Ãºltimos 60</div>`;
-        const isMaster = session && session.role === 'master';
-        
+        let html = `<div style="font-size:0.7rem;color:var(--muted);margin-bottom:10px">${snap.size} cambio(s) · últimos 60</div>`;
         snap.forEach(doc => {
             const d = doc.data();
             const zc = ZONE_C[d.zona_idx] || '#64748b';
             const diff = d.valor_nuevo - d.valor_anterior;
-            const arrow = diff >= 0 ? 'â†—' : 'â†˜';
+            const arrow = diff >= 0 ? '↑' : '↓';
             const dc = diff >= 0 ? '#10b981' : '#ef4444';
-            const deleteBtn = isMaster ? `<span onclick="deleteHistorialLog('${doc.id}')" style="cursor:pointer; margin-left:10px; font-size:1.1rem; color:#ef4444;" title="Eliminar registro">ðŸ—‘ï¸</span>` : '';
-            
+            const isMaster = session && session.role === 'master';
+            const deleteBtn = isMaster ? `<span onclick="deleteHistorialLog('${doc.id}')" style="cursor:pointer; margin-left:10px; font-size:1.1rem; color:#ef4444;" title="Eliminar registro">🗑️</span>` : '';
             html += `
             <div style="background:var(--surface);border:1px solid var(--border);
                         border-radius:12px;padding:12px 14px;margin-bottom:8px;
                         border-left:3px solid ${zc}">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
                     <span style="font-weight:700;font-size:0.8rem;color:${zc}">${d.zona||''}</span>
-                    <div style="display:flex;align-items:center;">
-                        <span style="font-size:0.75rem;font-weight:800;color:${dc}">
-                            ${arrow} ${d.valor_anterior}% âžœ ${d.valor_nuevo}%
+                    <span style="font-size:0.75rem;font-weight:800;color:${dc}">
+                        ${arrow} ${d.valor_anterior}% ➜ ${d.valor_nuevo}%
                         </span>
                         ${deleteBtn}
-                    </div>
+                    </span>
                 </div>
                 <div style="font-size:0.72rem;color:var(--soft);margin-bottom:3px">
-                    Sem ${d.semana} â€“ ${d.tarea||''}
+                    Sem ${d.semana} · ${d.tarea||''}
                 </div>
                 <div style="font-size:0.68rem;color:var(--muted)">
-                    ${d.fecha||''} Â· ${d.hora||''} Â· ${d.usuario||''}
+                    ${d.fecha||''} · ${d.hora||''} · ${d.usuario||''}
                 </div>
             </div>`;
         });
@@ -746,7 +742,7 @@ async function renderHistorial(el) {
     } catch(e) { el.innerHTML = `<div style="color:#f87171;padding:16px">Error: ${e.message}</div>`; }
 }
 
-// â•â• Panel de accesos MEJORADO (con tabs Accesos / Historial) â•â•
+// ══ Panel de accesos MEJORADO (con tabs Accesos / Historial) ══
 async function renderAccesos() {
     const container = document.getElementById('accesosContent');
     container.innerHTML = `
@@ -756,14 +752,14 @@ async function renderAccesos() {
                        border-radius:10px;background:rgba(59,130,246,0.15);
                        color:#93c5fd;font-size:0.75rem;font-weight:700;
                        font-family:Inter,sans-serif;cursor:pointer">
-                ðŸ“² Accesos (${db?'activo':'sin conex.'})
+                📲 Accesos (${db?'activo':'sin conex.'})
             </button>
             <button onclick="showAccesosTab('historial')" id="btnTabHistorial"
                 style="flex:1;padding:9px;border:1px solid rgba(255,255,255,0.08);
                        border-radius:10px;background:transparent;
                        color:var(--muted);font-size:0.75rem;font-weight:700;
                        font-family:Inter,sans-serif;cursor:pointer">
-                ðŸ“„ Historial cambios
+                📄 Historial cambios
             </button>
         </div>
         <div id="accesosSubLog"></div>
@@ -791,7 +787,7 @@ async function showAccesosTab(tab) {
 }
 
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 let projectData = [];
 let OBRAS_CATALOG = [];
 let currentObra = null;
@@ -825,9 +821,9 @@ async function loadProjectData(obraId) {
     }
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 // OBRA SELECTOR
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 
 function showObraSelector() {
     document.getElementById('loginScreen').style.display    = 'none';
@@ -835,7 +831,7 @@ function showObraSelector() {
     document.getElementById('appShell').style.display      = 'none';
     // Role badge
     const rb = document.getElementById('selectorRoleBadge');
-    const labels = { master:'âš¡ Master', observer:'ðŸ‘ Supervisor' };
+    const labels = { master:'⚡ Master', observer:'👁 Supervisor' };
     rb.textContent = labels[session.role] || session.role;
     rb.className = 'selector-role-badge ' + session.role;
     // Build grid
@@ -848,7 +844,7 @@ function buildObrasGrid() {
         <div class="obra-card" onclick="selectObra('${obra.id}')">
             <img class="obra-card-img" src="${obra.img || ''}" alt="${obra.name}"
                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-            <div class="obra-card-img-fallback" style="display:none">${obra.emoji || 'ðŸ—ï¸'}</div>
+            <div class="obra-card-img-fallback" style="display:none">${obra.emoji || '🏗️'}</div>
             <span class="obra-card-status ${obra.status}">${obra.status}</span>
             <div class="obra-card-body">
                 <div class="obra-card-name">${obra.name}</div>
@@ -868,9 +864,9 @@ async function selectObra(obraId) {
     }
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 // STATE
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 let session = null;   // { role, email }
 let TOTAL_WEEKS = 32;
 let currentWeek = 1;
@@ -885,23 +881,23 @@ const AUTH = {
     client:   { code: 'SAUCES' }
 };
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 // LOGIN UI
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 const HINTS = {
-    client:   '<strong>Cliente:</strong> Ingresa tu correo y la clave de acceso que te proporcionÃ³ SYD Constructores. Acceso en modo lectura a tu obra.',
-    observer: '<strong>Supervisor:</strong> Usa el cÃ³digo especial que te proporcionÃ³ el responsable de obra. Acceso de lectura a todas las obras.',
-    master:   '<strong>Master:</strong> Acceso total con cÃ³digo de administrador. Puedes actualizar el avance de todas las zonas.'
+    client:   '<strong>Cliente:</strong> Ingresa tu correo y la clave de acceso que te proporcionó SYD Constructores. Acceso en modo lectura a tu obra.',
+    observer: '<strong>Supervisor:</strong> Usa el código especial que te proporcionó el responsable de obra. Acceso de lectura a todas las obras.',
+    master:   '<strong>Master:</strong> Acceso total con código de administrador. Puedes actualizar el avance de todas las zonas.'
 };
-const DYN_LABEL = {client:'CÃ³digo de Obra', observer:'CÃ³digo de acceso', master:'CÃ³digo maestro'};
-const DYN_PLACEHOLDER = {client:'Proporcionado por constructor', observer:'CÃ³digo supervisor', master:'CÃ³digo master'};
+const DYN_LABEL = {client:'Código de Obra', observer:'Código de acceso', master:'Código maestro'};
+const DYN_PLACEHOLDER = {client:'Proporcionado por constructor', observer:'Código supervisor', master:'Código master'};
 let authMode = 'login'; // 'login' | 'register'
 
 function setAuthMode(mode, btn) {
     authMode = mode;
     document.querySelectorAll('.auth-toggle-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    // Mostrar generador de reportes solo a Master (si ya hay sesiÃ³n)
+    // Mostrar generador de reportes solo a Master (si ya hay sesión)
     const repCard = document.getElementById('reportGeneratorCard');
     if (repCard) {
         repCard.style.display = (session && session.role === 'master') ? 'block' : 'none';
@@ -910,7 +906,7 @@ function setAuthMode(mode, btn) {
     document.getElementById('fieldNombre').style.display = mode === 'register' ? 'block' : 'none';
     document.getElementById('fieldTelefono').style.display = mode === 'register' ? 'block' : 'none';
     document.getElementById('dynamicField').style.display = mode === 'register' ? 'block' : 'none'; // Only ask project code on register for client
-    document.getElementById('btnLoginAction').textContent = mode === 'register' ? 'Crear mi cuenta â†’' : 'Acceder al sistema â†’';
+    document.getElementById('btnLoginAction').textContent = mode === 'register' ? 'Crear mi cuenta →' : 'Acceder al sistema →';
     document.getElementById('loginError').classList.remove('show');
 }
 
@@ -941,7 +937,7 @@ function selectRole(role, btn) {
         document.getElementById('fieldNombre').style.display = 'none';
         document.getElementById('fieldTelefono').style.display = 'none';
         document.getElementById('dynamicField').style.display = 'block';
-        document.getElementById('btnLoginAction').textContent = 'Acceder al sistema â†’';
+        document.getElementById('btnLoginAction').textContent = 'Acceder al sistema →';
     }
 }
 
@@ -963,15 +959,15 @@ async function doRegister() {
     err.classList.remove('show');
 
     if(!name) { err.textContent='Ingresa tu nombre completo.'; err.classList.add('show'); return; }
-    if(!phone) { err.textContent='Ingresa tu nÃºmero de WhatsApp.'; err.classList.add('show'); return; }
-    if(!email || !email.includes('@')) { err.textContent='Ingresa un correo vÃ¡lido.'; err.classList.add('show'); return; }
-    if(pass.length < 5) { err.textContent='La contraseÃ±a debe tener al menos 5 caracteres.'; err.classList.add('show'); return; }
+    if(!phone) { err.textContent='Ingresa tu número de WhatsApp.'; err.classList.add('show'); return; }
+    if(!email || !email.includes('@')) { err.textContent='Ingresa un correo válido.'; err.classList.add('show'); return; }
+    if(pass.length < 5) { err.textContent='La contraseña debe tener al menos 5 caracteres.'; err.classList.add('show'); return; }
     if(!code) { err.textContent='Ingresa la clave de proyecto que te proporcionaron.'; err.classList.add('show'); return; }
 
     // Validate project code exists
     const foundObra = OBRAS_CATALOG.find(o => o.clientCode === code.toUpperCase()) || OBRAS_CATALOG[0];
     if(code.toUpperCase() !== AUTH.client.code && code.toUpperCase() !== foundObra.clientCode) {
-        err.textContent='Clave de proyecto no vÃ¡lida.'; err.classList.add('show'); return;
+        err.textContent='Clave de proyecto no válida.'; err.classList.add('show'); return;
     }
 
     try {
@@ -983,7 +979,7 @@ async function doRegister() {
         // Check if email already exists
         const snap = await db.collection('clientes').where('email', '==', email.toLowerCase()).get();
         if(!snap.empty) {
-            err.textContent = 'Este correo ya estÃ¡ registrado. Inicia sesiÃ³n.';
+            err.textContent = 'Este correo ya está registrado. Inicia sesión.';
             err.classList.add('show');
             btn.textContent = oldText;
             btn.disabled = false;
@@ -1023,7 +1019,7 @@ async function doRegister() {
         err.textContent = 'Error al conectar con la base de datos.';
         err.classList.add('show');
         document.getElementById('btnLoginAction').disabled = false;
-        document.getElementById('btnLoginAction').textContent = 'Crear mi cuenta â†’';
+        document.getElementById('btnLoginAction').textContent = 'Crear mi cuenta →';
     }
 }
 
@@ -1034,18 +1030,18 @@ async function doLogin() {
     const err   = document.getElementById('loginError');
     err.classList.remove('show');
 
-    if(!email || !email.includes('@')) { err.textContent='Ingresa un correo vÃ¡lido.'; err.classList.add('show'); return; }
+    if(!email || !email.includes('@')) { err.textContent='Ingresa un correo válido.'; err.classList.add('show'); return; }
 
     if(selectedRole === 'master') {
-        if(!code) { err.textContent='Ingresa el cÃ³digo master.'; err.classList.add('show'); return; }
-        if(code !== AUTH.master.code) { err.textContent='CÃ³digo master incorrecto.'; err.classList.add('show'); return; }
+        if(!code) { err.textContent='Ingresa el código master.'; err.classList.add('show'); return; }
+        if(code !== AUTH.master.code) { err.textContent='Código master incorrecto.'; err.classList.add('show'); return; }
         session = { role:'master', email };
     } else if(selectedRole === 'observer') {
-        if(!code) { err.textContent='Ingresa el cÃ³digo supervisor.'; err.classList.add('show'); return; }
-        if(code !== AUTH.observer.code) { err.textContent='CÃ³digo de supervisor incorrecto.'; err.classList.add('show'); return; }
+        if(!code) { err.textContent='Ingresa el código supervisor.'; err.classList.add('show'); return; }
+        if(code !== AUTH.observer.code) { err.textContent='Código de supervisor incorrecto.'; err.classList.add('show'); return; }
         session = { role:'observer', email };
     } else {
-        if(!pass) { err.textContent='Ingresa tu contraseÃ±a.'; err.classList.add('show'); return; }
+        if(!pass) { err.textContent='Ingresa tu contraseña.'; err.classList.add('show'); return; }
         
         try {
             const btn = document.getElementById('btnLoginAction');
@@ -1062,7 +1058,7 @@ async function doLogin() {
             btn.disabled = false;
 
             if(snap.empty) {
-                err.textContent = 'Correo o contraseÃ±a incorrectos.';
+                err.textContent = 'Correo o contraseña incorrectos.';
                 err.classList.add('show');
                 return;
             }
@@ -1080,7 +1076,7 @@ async function doLogin() {
     localStorage.setItem('sauces_session', JSON.stringify(session));
     logAccess(email, session.role, 'login');
     
-    // Routing: master/observer â†’ obra selector; client â†’ direct to app
+    // Routing: master/observer → obra selector; client → direct to app
     if(session.role === 'client') {
         if(await loadProjectData(session.obra)) {
             launchApp();
@@ -1103,11 +1099,11 @@ function doLogout() {
     document.getElementById('loginCode').value = '';
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 // APP LAUNCH
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 function launchApp() {
-    // master/observer without currentObra â†’ go to selector
+    // master/observer without currentObra → go to selector
     if((session.role==='master' || session.role==='observer') && !currentObra) {
         if(session.obra) {
             currentObra = OBRAS_CATALOG.find(o => o.id===session.obra) || OBRAS_CATALOG[0];
@@ -1131,13 +1127,13 @@ function launchApp() {
         document.getElementById('clientEmailBadge').textContent = session.email;
         document.getElementById('clientEmailBadge').style.display = 'inline-block';
 
-    // Mostrar botÃ³n de notificaciones y verificar estado
+    // Mostrar botón de notificaciones y verificar estado
     checkNotificationState();
 
     } else {
         document.getElementById('clientEmailBadge').style.display = 'none';
 
-    // Mostrar botÃ³n de notificaciones y verificar estado
+    // Mostrar botón de notificaciones y verificar estado
     checkNotificationState();
 
     }
@@ -1157,7 +1153,7 @@ function launchApp() {
 
     // Subtitle with real obra name + Version
     const version = APP_VERSION;
-    document.getElementById('appSubtitle').textContent = (currentObra.name || 'Proyecto') + (currentObra.location ? ' Â· ' + currentObra.location : '') + ' (' + version + ')';
+    document.getElementById('appSubtitle').textContent = (currentObra.name || 'Proyecto') + (currentObra.location ? ' · ' + currentObra.location : '') + ' (' + version + ')';
 
     // Generador de reporte visibility
     const repCard = document.getElementById('reportGeneratorCard');
@@ -1186,15 +1182,15 @@ function launchApp() {
     updateDashboard();
     const firstTab = document.querySelector('.tab-btn');
     if(firstTab) { firstTab.classList.add('active'); }
-    // Restaurar cola de WhatsApp si quedÃ³ a medias por recarga/suspensiÃ³n del PWA
+    // Restaurar cola de WhatsApp si quedó a medias por recarga/suspensión del PWA
     if (typeof checkAndRestoreWhatsAppQueue === 'function') {
         checkAndRestoreWhatsAppQueue();
     }
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 // BUILD
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 function buildWeekDots() {
     const c = document.getElementById('weekDots');
     c.innerHTML = '';
@@ -1218,9 +1214,9 @@ function buildGanttTable() {
     t.innerHTML=html;
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 // MAIN UPDATE
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 function updateDashboard() {
     const slider = document.getElementById('weekSlider');
     slider.style.setProperty('--pct', ((currentWeek-1)/(TOTAL_WEEKS-1)*100)+'%');
@@ -1267,9 +1263,9 @@ function updateGantt() {
     });
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 // RENDER VIEWS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 function getVisibleZones() {
     return projectData.map((d,i)=>({data:d,idx:i}));
 }
@@ -1304,7 +1300,7 @@ function renderTareas() {
                </div>`
             : ``;
         const uploadHtml = canEdit
-            ? `<button class="btn-upload-foto" onclick="triggerFotoUpload(${idx})">ðŸ“· + Foto</button>
+            ? `<button class="btn-upload-foto" onclick="triggerFotoUpload(${idx})">📷 + Foto</button>
                <div class="upload-progress" id="up-prog-${idx}"></div>`
             : '';
         html+=`
@@ -1330,7 +1326,7 @@ function renderTareas() {
 }
 
 function renderDetalle() {
-    document.getElementById('detailTitle').textContent=`Ã“rdenes de trabajo Â· Semana ${currentWeek}`;
+    document.getElementById('detailTitle').textContent=`Órdenes de trabajo · Semana ${currentWeek}`;
     const zones = getVisibleZones();
     const canEdit = session.role==='master';
     let html='';
@@ -1361,7 +1357,7 @@ function renderDetalle() {
         html+=`
         <div class="detail-card animate-in" style="animation-delay:${i*0.05}s;border-left:4px solid ${color}; padding-bottom:20px;">
             <div class="detail-card-zone">${row.zone}</div>
-            <div class="detail-card-title">ðŸ“Œ ${taskName}</div>
+            <div class="detail-card-title">📌 ${taskName}</div>
             <div style="font-size:0.75rem; color:var(--muted); margin-bottom:12px; line-height:1.4;">${weekDetail.desc || ''}</div>
             
             <div style="margin-bottom:15px;">
@@ -1422,12 +1418,12 @@ function renderDocumentos() {
         html += `
         <a href="${doc.ruta}" target="_blank" style="text-decoration:none; display:block; animation-delay:${i*0.05}s;" class="animate-in">
             <div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; align-items:center; gap:14px; transition:all 0.2s; cursor:pointer; margin-bottom:10px;" onmouseover="this.style.borderColor='var(--accent)';" onmouseout="this.style.borderColor='var(--border)';">
-                <div style="background:rgba(239,68,68,0.15); color:#ef4444; width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0;">ðŸ“„</div>
+                <div style="background:rgba(239,68,68,0.15); color:#ef4444; width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0;">📄</div>
                 <div style="flex:1; overflow:hidden;">
                     <div style="font-size:0.9rem; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${doc.nombre.replace('.pdf','')}</div>
                     <div style="font-size:0.65rem; color:var(--muted); margin-top:3px; text-transform:uppercase; letter-spacing:0.05em;">Documento PDF</div>
                 </div>
-                <div style="color:var(--accent); font-size:1.1rem; flex-shrink:0;">â†’</div>
+                <div style="color:var(--accent); font-size:1.1rem; flex-shrink:0;">→</div>
             </div>
         </a>
         `;
@@ -1435,9 +1431,9 @@ function renderDocumentos() {
     container.innerHTML = html;
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 // ACTIONS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 // (updateProgress moved above with logCambio)
 
 
@@ -1461,9 +1457,9 @@ function switchTab(tabId, btn) {
     else if(tabId==='reportes') cargarHistorialReportes();
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ASISTENTE DE INSTALACIÃ“N (PWA)
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
+// ASISTENTE DE INSTALACIÓN (PWA)
+// ══════════════════════════════════════
 // let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
@@ -1477,7 +1473,7 @@ function showInstallInstructions() {
     const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
     if (isPWA) {
-        alert('âœ… Ya estÃ¡s usando la aplicaciÃ³n instalada.');
+        alert('✅ Ya estás usando la aplicación instalada.');
         return;
     }
 
@@ -1503,39 +1499,39 @@ function showInstallInstructions() {
     let content = '';
     if (isIOS) {
         content = `
-            <div style="font-size:3rem; margin-bottom:15px;">ðŸ</div>
+            <div style="font-size:3rem; margin-bottom:15px;">🍏</div>
             <h3 style="margin:0 0 10px; font-size:1.3rem;">Instalar en iPhone</h3>
             <p style="font-size:0.9rem; color:#64748b; margin-bottom:24px;">Sigue estos 3 pasos para tener SYD en tu pantalla de inicio:</p>
             
             <div style="text-align:left; display:flex; flex-direction:column; gap:16px; margin-bottom:24px;">
                 <div style="display:flex; align-items:center; gap:15px;">
                     <div style="background:#f1f5f9; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">1</div>
-                    <div style="font-size:0.9rem;">Pulsa el botÃ³n <strong>Compartir</strong> <img src="https://img.icons8.com/ios/50/000000/share-rounded.png" style="width:18px; vertical-align:middle;"> (en la barra inferior).</div>
+                    <div style="font-size:0.9rem;">Pulsa el botón <strong>Compartir</strong> <img src="https://img.icons8.com/ios/50/000000/share-rounded.png" style="width:18px; vertical-align:middle;"> (en la barra inferior).</div>
                 </div>
                 <div style="display:flex; align-items:center; gap:15px;">
                     <div style="background:#f1f5f9; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">2</div>
-                    <div style="font-size:0.9rem;">Desliza hacia abajo y busca <strong>"AÃ±adir a pantalla de inicio"</strong>.</div>
+                    <div style="font-size:0.9rem;">Desliza hacia abajo y busca <strong>"Añadir a pantalla de inicio"</strong>.</div>
                 </div>
                 <div style="display:flex; align-items:center; gap:15px;">
                     <div style="background:#f1f5f9; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">3</div>
-                    <div style="font-size:0.9rem;">Pulsa <strong>"AÃ±adir"</strong> en la esquina superior derecha.</div>
+                    <div style="font-size:0.9rem;">Pulsa <strong>"Añadir"</strong> en la esquina superior derecha.</div>
                 </div>
             </div>
         `;
     } else if (deferredPrompt) {
         content = `
-            <div style="font-size:3rem; margin-bottom:15px;">ðŸ¤–</div>
+            <div style="font-size:3rem; margin-bottom:15px;">🤖</div>
             <h3 style="margin:0 0 10px; font-size:1.3rem;">Instalar App</h3>
-            <p style="font-size:0.9rem; color:#64748b; margin-bottom:24px;">Pulsa el botÃ³n de abajo para instalar SYD en tu Android.</p>
+            <p style="font-size:0.9rem; color:#64748b; margin-bottom:24px;">Pulsa el botón de abajo para instalar SYD en tu Android.</p>
             <button id="nativeInstallBtn" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:15px; border-radius:14px; font-weight:700; font-size:1rem; cursor:pointer; margin-bottom:15px;">
                 INSTALAR AHORA
             </button>
         `;
     } else {
         content = `
-            <div style="font-size:3rem; margin-bottom:15px;">ðŸŒ</div>
-            <h3 style="margin:0 0 10px; font-size:1.3rem;">AÃ±adir a Pantalla</h3>
-            <p style="font-size:0.9rem; color:#64748b; margin-bottom:24px;">Pulsa en los 3 puntos (MenÃº) de tu navegador y busca <strong>"AÃ±adir a pantalla de inicio"</strong> o <strong>"Instalar aplicaciÃ³n"</strong>.</p>
+            <div style="font-size:3rem; margin-bottom:15px;">🌐</div>
+            <h3 style="margin:0 0 10px; font-size:1.3rem;">Añadir a Pantalla</h3>
+            <p style="font-size:0.9rem; color:#64748b; margin-bottom:24px;">Pulsa en los 3 puntos (Menú) de tu navegador y busca <strong>"Añadir a pantalla de inicio"</strong> o <strong>"Instalar aplicación"</strong>.</p>
         `;
     }
 
@@ -1553,7 +1549,7 @@ function showInstallInstructions() {
         nativeBtn.onclick = async () => {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
-            console.log(`[SYD] Usuario eligiÃ³ instalar: ${outcome}`);
+            console.log(`[SYD] Usuario eligió instalar: ${outcome}`);
             deferredPrompt = null;
             document.getElementById(modalId).remove();
         };
@@ -1562,11 +1558,11 @@ function showInstallInstructions() {
 
 
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 // BOOT
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════
 window.onload = async function() {
-    await loadGlobalData(); // Cargar catÃ¡logo de obras
+    await loadGlobalData(); // Cargar catálogo de obras
 
     const saved = localStorage.getItem('sauces_session');
     if(saved) {
@@ -1625,14 +1621,14 @@ let recognition = null;
 let weeklyNotes = [];
 let GEMINI_API_KEY = localStorage.getItem('syd_gemini_key') || '';
 
-// Cargar la key desde Firebase (persiste entre dispositivos y modos incÃ³gnito)
+// Cargar la key desde Firebase (persiste entre dispositivos y modos incógnito)
 async function loadGeminiKeyFromFirebase() {
     try {
         const doc = await db.collection('config').doc('gemini').get();
         if (doc.exists && doc.data().apiKey) {
             GEMINI_API_KEY = doc.data().apiKey;
             localStorage.setItem('syd_gemini_key', GEMINI_API_KEY); // sincronizar local
-            console.log('[SYD] âœ… Gemini key cargada desde Firebase');
+            console.log('[SYD] ✅ Gemini key cargada desde Firebase');
         }
     } catch(e) {
         console.log('[SYD] Gemini key desde localStorage (Firebase no disponible)');
@@ -1650,16 +1646,16 @@ function toggleGeminiConfig() {
 
 async function saveGeminiKeyInline() {
     const key = document.getElementById('geminiKeyInput').value.trim();
-    if (!key) { alert('âš ï¸ La clave no puede estar vacÃ­a.'); return; }
+    if (!key) { alert('⚠️ La clave no puede estar vacía.'); return; }
     GEMINI_API_KEY = key;
     // Guardar en localStorage (respaldo local)
     localStorage.setItem('syd_gemini_key', GEMINI_API_KEY);
     // Guardar en Firebase (persiste en todos los dispositivos y sesiones)
     try {
         await db.collection('config').doc('gemini').set({ apiKey: key, updatedAt: new Date().toISOString() });
-        alert('âœ… Clave de IA guardada (Firebase + local). No se perderÃ¡ al actualizar.');
+        alert('✅ Clave de IA guardada (Firebase + local). No se perderá al actualizar.');
     } catch(e) {
-        alert('âœ… Clave guardada localmente.\nâš ï¸ No se pudo guardar en Firebase: ' + e.message);
+        alert('✅ Clave guardada localmente.\n⚠️ No se pudo guardar en Firebase: ' + e.message);
     }
     document.getElementById('geminiConfigArea').style.display = 'none';
 }
@@ -1671,7 +1667,7 @@ function initSpeech() {
     recognition = new Speech();
     recognition.lang = 'es-MX';
     recognition.onstart = () => {
-        document.getElementById('dictarIcon').textContent = 'ðŸ›‘';
+        document.getElementById('dictarIcon').textContent = '🛑';
         document.getElementById('dictarText').textContent = 'Grabando...';
         document.getElementById('dictationStatus').style.display = 'block';
     };
@@ -1680,7 +1676,7 @@ function initSpeech() {
         saveWeeklyNote(text);
     };
     recognition.onend = () => {
-        document.getElementById('dictarIcon').textContent = 'ðŸŽ™ï¸';
+        document.getElementById('dictarIcon').textContent = '🎙️';
         document.getElementById('dictarText').textContent = 'Dictar Nota';
         document.getElementById('dictationStatus').style.display = 'none';
     };
@@ -1689,7 +1685,7 @@ function initSpeech() {
 function startDictation() {
     if (!recognition) initSpeech();
     if (!recognition) {
-        addManualNote('Tu navegador no soporta dictado. Escribe tu nota aquÃ­:');
+        addManualNote('Tu navegador no soporta dictado. Escribe tu nota aquí:');
         return;
     }
     try { recognition.start(); } catch(e) { recognition.stop(); }
@@ -1709,7 +1705,7 @@ async function saveWeeklyNote(text) {
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             usuario: session.email || 'anonimo'
         });
-        alert('âœ… Nota guardada');
+        alert('✅ Nota guardada');
         loadWeeklyNotes();
     } catch(e) { alert('Error: ' + e.message); }
 }
@@ -1728,8 +1724,8 @@ async function loadWeeklyNotes() {
         let html = "";
         notesData.forEach(data => {
             html += `<div style="display:flex; justify-content:space-between; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05);">
-                        <div style="flex:1;">â€¢ ${data.texto}</div>
-                        <button onclick="deleteSingleNote('${data.id}')" style="background:none; border:none; color:#ef4444; cursor:pointer;">âœ•</button>
+                        <div style="flex:1;">• ${data.texto}</div>
+                        <button onclick="deleteSingleNote('${data.id}')" style="background:none; border:none; color:#ef4444; cursor:pointer;">✕</button>
                     </div>`;
         });
         const preview = document.getElementById('notesPreview');
@@ -1743,13 +1739,13 @@ async function loadWeeklyNotes() {
 }
 
 async function deleteSingleNote(id) {
-    if(!confirm('Â¿Borrar esta nota?')) return;
+    if(!confirm('¿Borrar esta nota?')) return;
     await db.collection('obras').doc(session.obra).collection('report_notes').doc(id).delete();
     loadWeeklyNotes();
 }
 
 async function clearWeeklyNotes() {
-    if(!confirm('Â¿Borrar todas las notas de esta semana?')) return;
+    if(!confirm('¿Borrar todas las notas de esta semana?')) return;
     const snap = await db.collection('obras').doc(session.obra).collection('report_notes').where('semana', '==', currentWeek).get();
     const batch = db.batch();
     snap.forEach(doc => batch.delete(doc.ref));
@@ -1801,7 +1797,7 @@ function showReportModal(html, fileName, numFotos) {
             <button onclick="saveReportEdits(this)"
                 style="background:#f59e0b;color:#fff;border:none;padding:8px 14px;
                 border-radius:24px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;box-shadow:0 2px 4px rgba(245,158,11,0.2);">
-                ðŸ’¾ <span class="hide-mobile">Guardar</span>
+                💾 <span class="hide-mobile">Guardar</span>
             </button>
             <button onclick="window.print()"
                 style="background:#fff;color:#2563eb;border:1px solid #bfdbfe;
@@ -1840,7 +1836,7 @@ async function generateReport() {
     const btn = document.getElementById('btnReporte');
     const oldText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = 'â³ Buscando fotos...';
+    btn.innerHTML = '⏳ Buscando fotos...';
 
     try {
         // 1. Buscar fotos de la obra (SIN filtro de semana para no perderse ninguna)
@@ -1864,30 +1860,30 @@ async function generateReport() {
 
         // 3. Llamar a Gemini si hay API Key
         if (GEMINI_API_KEY) {
-            btn.innerHTML = 'ðŸ¤– IA Analizando imÃ¡genes...';
+            btn.innerHTML = '🤖 IA Analizando imágenes...';
             try {
-                // Prompt de texto â€” sin URLs (Gemini no puede descargarlas)
+                // Prompt de texto — sin URLs (Gemini no puede descargarlas)
                 const notasTexto = weeklyNotes.map((n, i) => `${i + 1}. ${n}`).join('\n');
-                const prompt = `ActÃºa como el Director de Obra de SYD Constructores redactando un AVANCE DE OBRA SEMANAL para el propietario. El tono debe ser profesional, impecable y ejecutivo, pero con un lenguaje natural que un cliente adulto entienda sin necesidad de ser ingeniero.
+                const prompt = `Actúa como el Director de Obra de SYD Constructores redactando un AVANCE DE OBRA SEMANAL para el propietario. El tono debe ser profesional, impecable y ejecutivo, pero con un lenguaje natural que un cliente adulto entienda sin necesidad de ser ingeniero.
 
 TAREA: Redacta un reporte basado en las notas de campo del residente.
 
 REGLAS DE VOCABULARIO Y ESTILO:
-1. PROHIBIDO usar lenguaje robÃ³tico o traducciones literales como: "envoltura exterior", "envolvente", "aparatos sanitarios", "mÃ³dulos de baÃ±o", "habilitaciÃ³n de elementos".
-2. USA tÃ©rminos naturales de construcciÃ³n en MÃ©xico: "Fachada", "Enjarres", "Firme de concreto", "BaÃ±os", "InstalaciÃ³n de muebles de baÃ±o", "CancelerÃ­a", "CarpinterÃ­a", "Muros", "Pisos".
-3. Describe lo VISUAL: Explica quÃ© se ve en las fotos de forma clara. Ejemplo: "Se concluyÃ³ el detallado de pintura en la fachada principal".
-4. Evita muletillas informales como: "todo listo", "ya quedÃ³", "falta poco".
-5. MantÃ©n la formalidad (tercera persona) pero con calidez humana.
+1. PROHIBIDO usar lenguaje robótico o traducciones literales como: "envoltura exterior", "envolvente", "aparatos sanitarios", "módulos de baño", "habilitación de elementos".
+2. USA términos naturales de construcción en México: "Fachada", "Enjarres", "Firme de concreto", "Baños", "Instalación de muebles de baño", "Cancelería", "Carpintería", "Muros", "Pisos".
+3. Describe lo VISUAL: Explica qué se ve en las fotos de forma clara. Ejemplo: "Se concluyó el detallado de pintura en la fachada principal".
+4. Evita muletillas informales como: "todo listo", "ya quedó", "falta poco".
+5. Mantén la formalidad (tercera persona) pero con calidez humana.
 
 NOTAS DE CAMPO (Material de referencia):
 ${notasTexto}
 
 CONTEXTO: Proyecto residencial de alta gama. Fase: ${currentObra?.name || 'Obra actual'}.
 
-Devuelve ÃšNICAMENTE este JSON sin markdown:
-{"resumen":"[3 pÃ¡rrafos narrativos y profesionales]","avances":["[Lista de logros alcanzados]"],"descripciones":["[Exactamente ${fotoUrls.length} pies de foto descriptivos y claros]"]}`;
+Devuelve ÚNICAMENTE este JSON sin markdown:
+{"resumen":"[3 párrafos narrativos y profesionales]","avances":["[Lista de logros alcanzados]"],"descripciones":["[Exactamente ${fotoUrls.length} pies de foto descriptivos y claros]"]}`;
 
-                // Construir partes del mensaje: texto + imÃ¡genes en Base64
+                // Construir partes del mensaje: texto + imágenes en Base64
                 const parts = [{ text: prompt }];
 
                 // Intentar convertir hasta 6 fotos a Base64 para enviarlas a Gemini
@@ -1897,12 +1893,12 @@ Devuelve ÃšNICAMENTE este JSON sin markdown:
                     if (b64) {
                         parts.push({ inlineData: { mimeType: 'image/jpeg', data: b64 } });
                         imgSent++;
-                        console.log(`[SYD] ðŸ“¸ Imagen ${imgSent} enviada a Gemini`);
+                        console.log(`[SYD] 📸 Imagen ${imgSent} enviada a Gemini`);
                     } else {
                         console.warn('[SYD] No se pudo convertir imagen:', url);
                     }
                 }
-                console.log(`[SYD] Total imÃ¡genes enviadas a Gemini: ${imgSent} de ${fotoUrls.length}`);
+                console.log(`[SYD] Total imágenes enviadas a Gemini: ${imgSent} de ${fotoUrls.length}`);
 
                 const response = await fetch(
                     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -1927,13 +1923,13 @@ Devuelve ÃšNICAMENTE este JSON sin markdown:
                             reportData.avances = aiJson.avances;
                         if (Array.isArray(aiJson.descripciones) && aiJson.descripciones.length > 0)
                             reportData.descripciones = aiJson.descripciones;
-                        console.log('[SYD] âœ… IA generÃ³ el informe con anÃ¡lisis visual');
+                        console.log('[SYD] ✅ IA generó el informe con análisis visual');
                     } else {
                         console.warn('[SYD] JSON no encontrado en respuesta:', rawText.substring(0, 200));
                     }
                 } else if (data.error) {
                     console.error('[SYD] Error API Gemini:', data.error.message);
-                    alert(`âš ï¸ Gemini: ${data.error.message}\n\nEl informe se generarÃ¡ sin IA.`);
+                    alert(`⚠️ Gemini: ${data.error.message}\n\nEl informe se generará sin IA.`);
                 }
             } catch (aiErr) {
                 console.error('[SYD] Error llamando Gemini:', aiErr);
@@ -1943,7 +1939,7 @@ Devuelve ÃšNICAMENTE este JSON sin markdown:
 
 
         // 4. Cargar plantilla HTML
-        btn.innerHTML = 'ðŸ“„ Generando PDF...';
+        btn.innerHTML = '📄 Generando PDF...';
         const templateResponse = await fetch('plantilla_syd.html');
         if (!templateResponse.ok) throw new Error('No se pudo cargar plantilla_syd.html');
         let html = await templateResponse.text();
@@ -1963,14 +1959,14 @@ Devuelve ÃšNICAMENTE este JSON sin markdown:
             .replace('{{periodo_semana}}', periodoStr)
             .replace('{{resumen_ejecutivo}}', reportData.resumen);
 
-        // 7. Insertar avances (SecciÃ³n 2)
+        // 7. Insertar avances (Sección 2)
         let listaTrabajosHtml = '';
         reportData.avances.forEach(av => {
             listaTrabajosHtml += `<li contenteditable="true" style="outline:none;">${av}</li>`;
         });
         html = html.replace('{{lista_trabajos}}', listaTrabajosHtml);
 
-        // 8. Insertar Avances por Zona (SecciÃ³n 4)
+        // 8. Insertar Avances por Zona (Sección 4)
         let avancesZonasHtml = '';
         const zonesData = getVisibleZones();
         zonesData.forEach(({data:row}) => {
@@ -1979,7 +1975,7 @@ Devuelve ÃšNICAMENTE este JSON sin markdown:
         });
         html = html.replace('{{avance_zonas}}', avancesZonasHtml);
 
-        // 9. Insertar Fotos DinÃ¡micas (SecciÃ³n 3)
+        // 9. Insertar Fotos Dinámicas (Sección 3)
         let fotosHtml = '';
         fotoUrls.forEach((url, i) => {
             const desc = reportData.descripciones[i] || `Vista de avance ${i+1}`;
@@ -1997,11 +1993,11 @@ Devuelve ÃšNICAMENTE este JSON sin markdown:
         window._lastReportHtml = html; // Guardar para Modal/PDF
         showReportModal(html, fileName, fotoUrls.length);
 
-        // PRE-SUBIDA: Guardar en Firestore para obtener el ID de ediciÃ³n
+        // PRE-SUBIDA: Guardar en Firestore para obtener el ID de edición
         window._lastReportLink = '';
         window._lastReportDocId = null;
         try {
-            // Guardamos el html tal cual (ya no tiene Base64, asÃ­ que es ligero)
+            // Guardamos el html tal cual (ya no tiene Base64, así que es ligero)
             const docRef = await db.collection('informes_compartidos').add({
                 obra: obraId,
                 semana: currentWeek,
@@ -2024,13 +2020,13 @@ Devuelve ÃšNICAMENTE este JSON sin markdown:
     }
 }
 
-// â•â• Envio de Informe por WhatsApp â•â•
+// ══ Envio de Informe por WhatsApp ══
 
 async function saveReportEdits(btnElement) {
-    if (!db) { alert('No hay conexiÃ³n con la base de datos.'); return false; }
+    if (!db) { alert('No hay conexión con la base de datos.'); return false; }
     const oldText = btnElement ? btnElement.innerHTML : '';
     if (btnElement) {
-        btnElement.innerHTML = 'â³ Guardando...';
+        btnElement.innerHTML = '⏳ Guardando...';
         btnElement.disabled = true;
     }
     try {
@@ -2057,7 +2053,7 @@ async function saveReportEdits(btnElement) {
             }
             console.log('[SYD] Ediciones guardadas manualmente.');
             if (btnElement) {
-                btnElement.innerHTML = 'âœ… Guardado';
+                btnElement.innerHTML = '✅ Guardado';
                 setTimeout(() => { btnElement.innerHTML = oldText; btnElement.disabled = false; }, 2000);
             }
             return true;
@@ -2065,7 +2061,7 @@ async function saveReportEdits(btnElement) {
     } catch(e) {
         console.error('Error guardando ediciones:', e);
         if (btnElement) {
-            btnElement.innerHTML = 'âŒ Error';
+            btnElement.innerHTML = '❌ Error';
             setTimeout(() => { btnElement.innerHTML = oldText; btnElement.disabled = false; }, 2000);
         }
         alert('Error al guardar: ' + e.message);
@@ -2087,7 +2083,7 @@ async function showReportHistory() {
     
     container.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:15px;">
-            <h3 style="margin:0; font-size:1.2rem; color:#1e293b;">ðŸ“… Historial de Reportes</h3>
+            <h3 style="margin:0; font-size:1.2rem; color:#1e293b;">📅 Historial de Reportes</h3>
             <button onclick="document.getElementById('historyModal').remove()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#94a3b8;">&times;</button>
         </div>
         <div id="historyList" style="display:flex; flex-direction:column; gap:12px;">
@@ -2105,7 +2101,7 @@ async function showReportHistory() {
         
         const list = document.getElementById('historyList');
         if (snap.empty) {
-            list.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">No se han generado reportes aÃºn.</div>';
+            list.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">No se han generado reportes aún.</div>';
             return;
         }
         
@@ -2146,7 +2142,7 @@ async function showReportHistory() {
 }
 
 async function deleteReport(id, btn) {
-    if (!confirm('Â¿EstÃ¡s seguro de que deseas eliminar este reporte permanentemente?\\nEl link compartido dejarÃ¡ de funcionar.')) return;
+    if (!confirm('¿Estás seguro de que deseas eliminar este reporte permanentemente?\\nEl link compartido dejará de funcionar.')) return;
     
     btn.innerHTML = '...';
     btn.disabled = true;
@@ -2154,7 +2150,7 @@ async function deleteReport(id, btn) {
         await db.collection('informes_compartidos').doc(id).delete();
         btn.closest('div').parentElement.remove();
         if (document.getElementById('historyList').children.length === 0) {
-            document.getElementById('historyList').innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">No se han generado reportes aÃºn.</div>';
+            document.getElementById('historyList').innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">No se han generado reportes aún.</div>';
         }
     } catch (e) {
         alert('Error al eliminar: ' + e.message);
@@ -2164,7 +2160,7 @@ async function deleteReport(id, btn) {
 }
 
 async function sendReportWhatsApp() {
-    if (!db) { alert('Firebase no estÃ¡ conectado.'); return; }
+    if (!db) { alert('Firebase no está conectado.'); return; }
     const obraId = session.obra;
     if (!obraId) { alert('No hay obra seleccionada.'); return; }
 
@@ -2172,14 +2168,14 @@ async function sendReportWhatsApp() {
     let oldBtnText = '';
     if (btn) {
         oldBtnText = btn.innerHTML;
-        btn.innerHTML = 'â³ Guardando...';
+        btn.innerHTML = '⏳ Guardando...';
         btn.disabled = true;
     }
 
     try {
-        console.log('[SYD] Iniciando envÃ­o WhatsApp...');
+        console.log('[SYD] Iniciando envío WhatsApp...');
 
-        // 1. Guardar las ediciones en Firestore (ahora usa la funciÃ³n independiente)
+        // 1. Guardar las ediciones en Firestore (ahora usa la función independiente)
         await saveReportEdits();
 
         // 2. Buscar clientes (Usamos un timeout para que no se quede colgado)
@@ -2191,7 +2187,7 @@ async function sendReportWhatsApp() {
         
         snap.forEach(doc => {
             const d = doc.data();
-            // Filtramos manualmente por obraId para evitar problemas de Ã­ndices en Firebase
+            // Filtramos manualmente por obraId para evitar problemas de índices en Firebase
             if (d.obra === obraId && d.telefono && d.nombre) {
                 const phone = d.telefono.replace(/[^\d+]/g, '');
                 if (phone) clientMap[phone] = d.nombre;
@@ -2202,15 +2198,15 @@ async function sendReportWhatsApp() {
         console.log('[SYD] Clientes encontrados:', clients.length);
 
         if (clients.length === 0) {
-            alert('âš ï¸ No se encontraron clientes registrados en esta obra.\n\nVe a la secciÃ³n de "Registro de Accesos" para verificar.');
+            alert('⚠️ No se encontraron clientes registrados en esta obra.\n\nVe a la sección de "Registro de Accesos" para verificar.');
             btn.innerHTML = oldBtnText; btn.disabled = false;
             return;
         }
 
-        // 2. Asegurar que el link del informe estÃ© listo
+        // 2. Asegurar que el link del informe esté listo
         let finalLink = window._lastReportLink;
         if (!finalLink && window._lastReportHtml) {
-            btn.innerHTML = 'â³ Subiendo informe...';
+            btn.innerHTML = '⏳ Subiendo informe...';
             try {
                 const uploadPromise = db.collection('informes_compartidos').add({
                     obra: obraId,
@@ -2230,12 +2226,12 @@ async function sendReportWhatsApp() {
         }
 
         if (!finalLink) {
-            alert('âš ï¸ El enlace web del informe no pudo generarse. Se enviarÃ¡ el mensaje sin el link. Verifica tu conexiÃ³n e intÃ©ntalo de nuevo si deseas adjuntarlo.');
+            alert('⚠️ El enlace web del informe no pudo generarse. Se enviará el mensaje sin el link. Verifica tu conexión e inténtalo de nuevo si deseas adjuntarlo.');
         }
 
         const reportLink = finalLink;
         const hour = new Date().getHours();
-        const saludo = hour < 12 ? 'Buenos dÃ­as' : 'Buenas tardes';
+        const saludo = hour < 12 ? 'Buenos días' : 'Buenas tardes';
         const obraName = currentObra?.name || obraId;
         const semana = window._lastReportWeek || currentWeek;
         const fecha = new Date().toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -2243,12 +2239,12 @@ async function sendReportWhatsApp() {
         btn.innerHTML = oldBtnText;
         btn.disabled = false;
 
-        // 3. INICIAR FLUJO SECUENCIAL (OpciÃ³n C)
+        // 3. INICIAR FLUJO SECUENCIAL (Opción C)
         window._waQueue = clients;
         window._waIndex = 0;
         window._waActive = true;
         
-        // Guardar cola de envÃ­os en localStorage para resistir suspensiones o recargas del PWA
+        // Guardar cola de envíos en localStorage para resistir suspensiones o recargas del PWA
         localStorage.setItem('syd_wa_queue', JSON.stringify(clients));
         localStorage.setItem('syd_wa_index', '0');
         localStorage.setItem('syd_wa_active', 'true');
@@ -2297,8 +2293,8 @@ async function sendReportWhatsApp() {
                 localStorage.removeItem('syd_wa_reportlink');
 
                 card.innerHTML = `
-                    <div style="font-size:3rem; margin-bottom:15px;">âœ…</div>
-                    <div style="font-size:1.4rem; font-weight:800; margin-bottom:10px;">Â¡Todo enviado!</div>
+                    <div style="font-size:3rem; margin-bottom:15px;">✅</div>
+                    <div style="font-size:1.4rem; font-weight:800; margin-bottom:10px;">¡Todo enviado!</div>
                     <div style="font-size:0.9rem; color:#94a3b8; margin-bottom:24px;">Se han procesado los ${total} clientes de la lista.</div>
                     <button onclick="window._waActive=false; document.getElementById('${modalId}').remove()" style="width:100%; background:var(--accent); color:#fff; border:none; padding:15px; border-radius:14px; font-weight:700; font-size:1rem; cursor:pointer;">
                         Finalizar y Cerrar
@@ -2312,7 +2308,7 @@ async function sendReportWhatsApp() {
             
             card.innerHTML = `
                 <div style="font-size:0.75rem; color:var(--accent2); font-weight:800; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">
-                    EnvÃ­o Secuencial (${idx + 1} de ${total})
+                    Envío Secuencial (${idx + 1} de ${total})
                 </div>
                 <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; margin-bottom:24px; overflow:hidden;">
                     <div style="width:${pct}%; height:100%; background:var(--accent2); transition:width 0.3s;"></div>
@@ -2325,7 +2321,7 @@ async function sendReportWhatsApp() {
                 </div>
 
                 <button onclick="window._sendCurrentWA()" style="width:100%; background:#25d366; color:#fff; border:none; padding:18px; border-radius:16px; font-weight:800; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 10px 20px rgba(37,211,102,0.2); margin-bottom:16px;">
-                    <span>ðŸ“± ENVIAR AHORA</span>
+                    <span>📱 ENVIAR AHORA</span>
                 </button>
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
@@ -2351,9 +2347,9 @@ async function sendReportWhatsApp() {
 
 Le enviamos el informe semanal correspondiente a los trabajos realizados en su obra *${obraName}*.
 
-${emojiCalendar} Semana ${semana} â€” ${fecha}
+${emojiCalendar} Semana ${semana} — ${fecha}
 ${reportLink ? `\n${emojiDoc} *Ver informe completo:*\n${reportLink}\n` : ''}
-Cualquier duda o comentario estamos a sus Ã³rdenes.
+Cualquier duda o comentario estamos a sus órdenes.
 
 _SYD Constructores_
 ${emojiEmail} info@sydconstructores.com.mx
@@ -2384,12 +2380,12 @@ ${emojiPhone} 333 250 3313`;
 
     } catch (e) {
         console.error('[SYD] Error WhatsApp:', e);
-        alert('Error: ' + e.message + '\n\nRevisa la conexiÃ³n a internet.');
+        alert('Error: ' + e.message + '\n\nRevisa la conexión a internet.');
         btn.innerHTML = oldBtnText; btn.disabled = false;
     }
 }
 
-// RESTAURAR LA COLA DE WHATSAPP DESPUÃ‰S DE LA SUSPENSIÃ“N / RECARGA DEL MÃ“VIL
+// RESTAURAR LA COLA DE WHATSAPP DESPUÉS DE LA SUSPENSIÓN / RECARGA DEL MÓVIL
 function checkAndRestoreWhatsAppQueue() {
     if (localStorage.getItem('syd_wa_active') === 'true') {
         const queueRaw = localStorage.getItem('syd_wa_queue');
@@ -2411,7 +2407,7 @@ function checkAndRestoreWhatsAppQueue() {
                 const fecha = localStorage.getItem('syd_wa_fecha') || '';
                 const reportLink = localStorage.getItem('syd_wa_reportlink') || '';
                 
-                // Mostrar el modal de envÃ­o secuencial de nuevo
+                // Mostrar el modal de envío secuencial de nuevo
                 const modalId = 'waSequentialModal';
                 const oldModal = document.getElementById(modalId);
                 if (oldModal) oldModal.remove();
@@ -2451,8 +2447,8 @@ function checkAndRestoreWhatsAppQueue() {
                         localStorage.removeItem('syd_wa_reportlink');
                         
                         card.innerHTML = `
-                            <div style="font-size:3rem; margin-bottom:15px;">âœ…</div>
-                            <div style="font-size:1.4rem; font-weight:800; margin-bottom:10px;">Â¡Todo enviado!</div>
+                            <div style="font-size:3rem; margin-bottom:15px;">✅</div>
+                            <div style="font-size:1.4rem; font-weight:800; margin-bottom:10px;">¡Todo enviado!</div>
                             <div style="font-size:0.9rem; color:#94a3b8; margin-bottom:24px;">Se han procesado los ${total} clientes de la lista.</div>
                             <button onclick="window._waActive=false; document.getElementById('${modalId}').remove()" style="width:100%; background:var(--accent); color:#fff; border:none; padding:15px; border-radius:14px; font-weight:700; font-size:1rem; cursor:pointer;">
                                 Finalizar y Cerrar
@@ -2466,7 +2462,7 @@ function checkAndRestoreWhatsAppQueue() {
                     
                     card.innerHTML = `
                         <div style="font-size:0.75rem; color:var(--accent2); font-weight:800; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">
-                            EnvÃ­o Secuencial (${idx + 1} de ${total})
+                            Envío Secuencial (${idx + 1} de ${total})
                         </div>
                         <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; margin-bottom:24px; overflow:hidden;">
                             <div style="width:${pct}%; height:100%; background:var(--accent2); transition:width 0.3s;"></div>
@@ -2479,7 +2475,7 @@ function checkAndRestoreWhatsAppQueue() {
                         </div>
 
                         <button onclick="window._sendCurrentWA()" style="width:100%; background:#25d366; color:#fff; border:none; padding:18px; border-radius:16px; font-weight:800; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 10px 20px rgba(37,211,102,0.2); margin-bottom:16px;">
-                            <span>ðŸ“± ENVIAR AHORA</span>
+                            <span>📱 ENVIAR AHORA</span>
                         </button>
 
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
@@ -2505,9 +2501,9 @@ function checkAndRestoreWhatsAppQueue() {
 
 Le enviamos el informe semanal correspondiente a los trabajos realizados en su obra *${obraName}*.
 
-${emojiCalendar} Semana ${semana} â€” ${fecha}
+${emojiCalendar} Semana ${semana} — ${fecha}
 ${reportLink ? `\n${emojiDoc} *Ver informe completo:*\n${reportLink}\n` : ''}
-Cualquier duda o comentario estamos a sus Ã³rdenes.
+Cualquier duda o comentario estamos a sus órdenes.
 
 _SYD Constructores_
 ${emojiEmail} info@sydconstructores.com.mx
@@ -2523,7 +2519,7 @@ ${emojiPhone} 333 250 3313`;
                     setTimeout(window._updateWAModal, 500);
                 };
 
-                // Registrar focus listener si no estÃ¡
+                // Registrar focus listener si no está
                 if (!window._waFocusListenerAdded) {
                     window.addEventListener('focus', () => {
                         if (window._waActive) {
@@ -2535,7 +2531,7 @@ ${emojiPhone} 333 250 3313`;
 
                 window._updateWAModal();
             } else {
-                // Limpiar si se completÃ³ de otra forma
+                // Limpiar si se completó de otra forma
                 localStorage.removeItem('syd_wa_queue');
                 localStorage.removeItem('syd_wa_index');
                 localStorage.removeItem('syd_wa_active');
@@ -2551,7 +2547,7 @@ ${emojiPhone} 333 250 3313`;
 
 // REENVIAR REPORTE EXISTENTE A TODOS LOS CLIENTES DE LA OBRA
 window.reenviarReporte = async function(docId, semana, reportLink, btn) {
-    if (!db) { alert('Firebase no estÃ¡ conectado.'); return; }
+    if (!db) { alert('Firebase no está conectado.'); return; }
     const obraId = session.obra;
     if (!obraId) { alert('No hay obra seleccionada.'); return; }
 
@@ -2560,7 +2556,7 @@ window.reenviarReporte = async function(docId, semana, reportLink, btn) {
     btn.disabled = true;
 
     try {
-        console.log('[SYD] Iniciando reenvÃ­o de reporte...');
+        console.log('[SYD] Iniciando reenvío de reporte...');
 
         // 1. Buscar clientes
         const snap = await db.collection('clientes').get();
@@ -2575,16 +2571,16 @@ window.reenviarReporte = async function(docId, semana, reportLink, btn) {
         });
 
         const clients = Object.entries(clientMap);
-        console.log('[SYD] Clientes para reenvÃ­o:', clients.length);
+        console.log('[SYD] Clientes para reenvío:', clients.length);
 
         if (clients.length === 0) {
-            alert('âš ï¸ No se encontraron clientes registrados en esta obra.\n\nVe a la secciÃ³n de "Registro de Accesos" para verificar.');
+            alert('⚠️ No se encontraron clientes registrados en esta obra.\n\nVe a la sección de "Registro de Accesos" para verificar.');
             btn.innerHTML = oldBtnText; btn.disabled = false;
             return;
         }
 
         const hour = new Date().getHours();
-        const saludo = hour < 12 ? 'Buenos dÃ­as' : 'Buenas tardes';
+        const saludo = hour < 12 ? 'Buenos días' : 'Buenas tardes';
         const obraName = currentObra?.name || obraId;
         const fecha = new Date().toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
@@ -2648,8 +2644,8 @@ window.reenviarReporte = async function(docId, semana, reportLink, btn) {
                 localStorage.removeItem('syd_wa_reportlink');
 
                 card.innerHTML = `
-                    <div style="font-size:3rem; margin-bottom:15px;">âœ…</div>
-                    <div style="font-size:1.4rem; font-weight:800; margin-bottom:10px;">Â¡Todo enviado!</div>
+                    <div style="font-size:3rem; margin-bottom:15px;">✅</div>
+                    <div style="font-size:1.4rem; font-weight:800; margin-bottom:10px;">¡Todo enviado!</div>
                     <div style="font-size:0.9rem; color:#94a3b8; margin-bottom:24px;">Se han procesado los ${total} clientes de la lista.</div>
                     <button onclick="window._waActive=false; document.getElementById('${modalId}').remove()" style="width:100%; background:var(--accent); color:#fff; border:none; padding:15px; border-radius:14px; font-weight:700; font-size:1rem; cursor:pointer;">
                         Finalizar y Cerrar
@@ -2663,7 +2659,7 @@ window.reenviarReporte = async function(docId, semana, reportLink, btn) {
             
             card.innerHTML = `
                 <div style="font-size:0.75rem; color:var(--accent2); font-weight:800; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">
-                    ReenvÃ­o Secuencial (${idx + 1} de ${total})
+                    Reenvío Secuencial (${idx + 1} de ${total})
                 </div>
                 <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; margin-bottom:24px; overflow:hidden;">
                     <div style="width:${pct}%; height:100%; background:var(--accent2); transition:width 0.3s;"></div>
@@ -2676,7 +2672,7 @@ window.reenviarReporte = async function(docId, semana, reportLink, btn) {
                 </div>
 
                 <button onclick="window._sendCurrentWA()" style="width:100%; background:#25d366; color:#fff; border:none; padding:18px; border-radius:16px; font-weight:800; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 10px 20px rgba(37,211,102,0.2); margin-bottom:16px;">
-                    <span>ðŸ“± ENVIAR AHORA</span>
+                    <span>📱 ENVIAR AHORA</span>
                 </button>
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
@@ -2702,9 +2698,9 @@ window.reenviarReporte = async function(docId, semana, reportLink, btn) {
 
 Le enviamos el informe semanal correspondiente a los trabajos realizados en su obra *${obraName}*.
 
-${emojiCalendar} Semana ${semana} â€” ${fecha}
+${emojiCalendar} Semana ${semana} — ${fecha}
 ${reportLink ? `\n${emojiDoc} *Ver informe completo:*\n${reportLink}\n` : ''}
-Cualquier duda o comentario estamos a sus Ã³rdenes.
+Cualquier duda o comentario estamos a sus órdenes.
 
 _SYD Constructores_
 ${emojiEmail} info@sydconstructores.com.mx
@@ -2732,7 +2728,7 @@ ${emojiPhone} 333 250 3313`;
         window._updateWAModal();
 
     } catch (e) {
-        console.error('[SYD] Error reenvÃ­o WhatsApp:', e);
+        console.error('[SYD] Error reenvío WhatsApp:', e);
         alert('Error al reenviar: ' + e.message);
         btn.innerHTML = oldBtnText; btn.disabled = false;
     }
@@ -2741,7 +2737,7 @@ ${emojiPhone} 333 250 3313`;
 
 
 
-// Carga imagen como Base64 â€” con proxy CORS cuando es necesario
+// Carga imagen como Base64 — con proxy CORS cuando es necesario
 function getBase64ImageSafe(url) {
     return new Promise((resolve) => {
         // Si es una URL de assets local, cargar directamente
@@ -2770,8 +2766,8 @@ function getBase64ImageSafe(url) {
     });
 }
 
-// IMGBB â€” FOTOS (Punto 4, sin tarjeta)
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// IMGBB — FOTOS (Punto 4, sin tarjeta)
+// ══════════════════════════════════════
 const IMGBB_API_KEY = 'ef497f7df24480c5df8656ba07fea071';
 
 let _uploadContext = null;
@@ -2795,12 +2791,12 @@ async function handleFotoSelected(e) {
 
     const ctx = _uploadContext;
     const progEl = document.getElementById('up-prog-' + ctx.zIdx);
-    if(progEl) { progEl.style.display='block'; progEl.textContent='â³ Procesando imagen...'; }
+    if(progEl) { progEl.style.display='block'; progEl.textContent='⏳ Procesando imagen...'; }
 
     try {
-        // CompresiÃ³n optimizada para PDF (800px, 0.6 quality)
+        // Compresión optimizada para PDF (800px, 0.6 quality)
         const base64 = await imageToBase64(file, 800, 0.6);
-        if(progEl) progEl.textContent = 'â³ Subiendo a ImgBB...';
+        if(progEl) progEl.textContent = '⏳ Subiendo a ImgBB...';
 
         const formData = new FormData();
         formData.append('key', IMGBB_API_KEY);
@@ -2833,19 +2829,19 @@ async function handleFotoSelected(e) {
                     hora:      new Date().toLocaleTimeString('es-MX')
                 });
         }
-        if(progEl) { progEl.textContent='âœ… Foto subida'; setTimeout(()=>{ progEl.style.display='none'; },2500); }
+        if(progEl) { progEl.textContent='✅ Foto subida'; setTimeout(()=>{ progEl.style.display='none'; },2500); }
         loadFotosGallery(ctx.zIdx, ctx.semana, 'gallery-' + ctx.zIdx);
         loadFotosGallery(ctx.zIdx, ctx.semana, 'dgallery-' + ctx.zIdx);
 
     } catch(err) {
-        if(progEl) { progEl.textContent='âŒ Error: ' + err.message; }
+        if(progEl) { progEl.textContent='❌ Error: ' + err.message; }
         console.error('ImgBB upload error:', err);
     }
 }
 
 let _fotoListeners = {};
 
-// â€” Cargar galerÃ­a de fotos de una zona/semana (Tiempo Real)
+// — Cargar galería de fotos de una zona/semana (Tiempo Real)
 function loadFotosGallery(zIdx, semana, containerId, filterByWeek = false) {
     const el = document.getElementById(containerId);
     if(!el) return;
@@ -2879,12 +2875,12 @@ function loadFotosGallery(zIdx, semana, containerId, filterByWeek = false) {
                 
                 docs = docs.slice(0, 10);
                 
-                let html = `<div class="foto-count-badge">ðŸ“· ${docs.length} foto(s) recientes de la zona</div>
+                let html = `<div class="foto-count-badge">📷 ${docs.length} foto(s) recientes de la zona</div>
                             <div class="foto-gallery">`;
                 docs.forEach(docData => {
                     const d = docData.data;
                     const thumbSrc = d.thumb || d.url;
-                    const caption = `${d.zona} Â· Sem ${d.semana} Â· ${d.tarea||''}`;
+                    const caption = `${d.zona} · Sem ${d.semana} · ${d.tarea||''}`;
                     
                     html += `
                         <div style="position:relative; display:inline-block; margin-right:8px; margin-bottom:8px;">
@@ -2897,7 +2893,7 @@ function loadFotosGallery(zIdx, semana, containerId, filterByWeek = false) {
                                             width:22px; height:22px; border-radius:50%; display:flex; align-items:center; 
                                             justify-content:center; font-size:0.7rem; cursor:pointer; border:2px solid var(--surface);
                                             box-shadow:0 2px 8px rgba(0,0,0,0.4); z-index:10;">
-                                    ðŸ—‘ï¸
+                                    🗑️
                                 </div>
                             ` : ''}
                         </div>`;
@@ -2915,7 +2911,7 @@ function loadFotosGallery(zIdx, semana, containerId, filterByWeek = false) {
 }
 async function deleteFoto(docId, event) {
     if (event) event.stopPropagation();
-    if (!confirm('Â¿Eliminar esta foto permanentemente?')) return;
+    if (!confirm('¿Eliminar esta foto permanentemente?')) return;
     try {
         await db.collection('obras').doc(session.obra || 'SAUCES')
             .collection('fotos').doc(docId).delete();
@@ -2925,7 +2921,7 @@ async function deleteFoto(docId, event) {
     }
 }
 
-// â€” Lightbox
+// — Lightbox
 function openLightbox(url, caption) {
     document.getElementById('lightboxImg').src = url;
     document.getElementById('lightboxCaption').textContent = caption;
@@ -2936,7 +2932,7 @@ function closeLightbox() {
     document.getElementById('lightboxImg').src = '';
 }
 
-// â€” Convertir imagen a base64 comprimida
+// — Convertir imagen a base64 comprimida
 function imageToBase64(file, maxWidth, quality) {
     return new Promise(resolve => {
         const reader = new FileReader();
@@ -2994,7 +2990,7 @@ window.cargarHistorialReportes = async function() {
             .get();
             
         if(snap.empty) {
-            listWrap.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted); font-size:0.85rem;">No hay reportes publicados aÃºn.</div>';
+            listWrap.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted); font-size:0.85rem;">No hay reportes publicados aún.</div>';
             return;
         }
         
@@ -3016,7 +3012,7 @@ window.cargarHistorialReportes = async function() {
                     <div style="font-weight:700; color:var(--accent);">Reporte Semana ${data.semana}</div>
                     <div style="font-size:0.7rem; color:var(--muted); margin-top:4px;">Publicado: ${dateStr}</div>
                 </div>
-                <div style="color:var(--accent2);">ðŸ“‘ Ver</div>
+                <div style="color:var(--accent2);">📑 Ver</div>
             </div>`;
         });
         
@@ -3046,14 +3042,14 @@ window.verReporteOficial = function(docId) {
         <button onclick="document.getElementById('reportModalReadOnly').remove()"
             style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;
             padding:8px 14px;border-radius:24px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;">
-            â—€ Regresar
+            ◀ Regresar
         </button>
     </div>
     <div>
         <button onclick="window.print()"
             style="background:#fff;color:#2563eb;border:1px solid #bfdbfe;
             padding:8px 14px;border-radius:24px;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;box-shadow:0 2px 4px rgba(37,99,235,0.05);">
-            ðŸ–¨ï¸ Descargar PDF
+            🖨️ Descargar PDF
         </button>
     </div>`;
     
@@ -3067,7 +3063,7 @@ window.verReporteOficial = function(docId) {
 };
 
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â• MÃ“DULO DE COMUNICACIONES (CHAT) â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════ MÓDULO DE COMUNICACIONES (CHAT) ══════════════
 let chatUnsubscribe = null;
 let currentChatFotoUrl = null;
 
@@ -3156,7 +3152,7 @@ window.sendChatConsulta = async function() {
         console.error(err);
         alert('Error al enviar: ' + err.message);
     } finally {
-        btn.innerHTML = 'âž¤';
+        btn.innerHTML = '➤';
         btn.disabled = false;
         btn.style.opacity = '1';
     }
@@ -3174,7 +3170,7 @@ function loadConsultas() {
         .onSnapshot(snap => {
             container.innerHTML = '';
             if(snap.empty) {
-                container.innerHTML = '<div style="text-align:center;color:#64748b;padding:20px;font-size:0.8rem;">AÃºn no hay mensajes.<br>Â¡Escribe algo para empezar!</div>';
+                container.innerHTML = '<div style="text-align:center;color:#64748b;padding:20px;font-size:0.8rem;">Aún no hay mensajes.<br>¡Escribe algo para empezar!</div>';
                 return;
             }
 
@@ -3184,7 +3180,7 @@ function loadConsultas() {
                 const isMe = (data.remitente === myRole);
 
                 const div = document.createElement('div');
-                // Estilos: si soy yo el que envÃ­a, se alinea a la derecha con estilo "master"
+                // Estilos: si soy yo el que envía, se alinea a la derecha con estilo "master"
                 div.className = 'chat-msg ' + (isMe ? 'master' : 'cliente'); 
                 
                 // Formatear hora
@@ -3203,7 +3199,7 @@ function loadConsultas() {
                 let nameStr = (data.remitente === 'MASTER') ? 'Ingeniero (MASTER)' : 'Cliente';
                 if(data.email && data.remitente !== 'MASTER') nameStr = data.email.split('@')[0];
                 
-                const deleteBtnHtml = isMe ? `<button onclick="deleteChatMessage('${doc.id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:14px; margin-left:8px; padding:0; display:inline-flex; align-items:center;" title="Borrar mensaje">ðŸ—‘ï¸</button>` : '';
+                const deleteBtnHtml = isMe ? `<button onclick="deleteChatMessage('${doc.id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:14px; margin-left:8px; padding:0; display:inline-flex; align-items:center;" title="Borrar mensaje">🗑️</button>` : '';
 
                 div.innerHTML = `
                     <div class="chat-bubble">
@@ -3212,7 +3208,7 @@ function loadConsultas() {
                     </div>
                     <div class="chat-meta">
                         <span>${nameStr}</span>
-                        <span>â€¢</span>
+                        <span>•</span>
                         <span>${timeStr}</span>
                         ${deleteBtnHtml}
                     </div>
@@ -3231,7 +3227,7 @@ function loadConsultas() {
 }
 
 window.deleteChatMessage = async function(docId) {
-    if(confirm('Â¿EstÃ¡s seguro de que quieres borrar este mensaje? Esta acciÃ³n no se puede deshacer.')) {
+    if(confirm('¿Estás seguro de que quieres borrar este mensaje? Esta acción no se puede deshacer.')) {
         try {
             await db.collection('obras').doc(currentObra.id).collection('comunicaciones').doc(docId).delete();
         } catch(err) {
@@ -3240,17 +3236,3 @@ window.deleteChatMessage = async function(docId) {
         }
     }
 };
-
-
-
-window.deleteHistorialLog = async function(id) {
-    if(!confirm('¿Estás seguro de que quieres borrar este registro del historial?')) return;
-    try {
-        const obraId = (typeof currentObra !== 'undefined' && currentObra ? currentObra.id : session.obra) || 'SAUCES';
-        await db.collection('obras').doc(obraId).collection('cambios_avance').doc(id).delete();
-        renderHistorial(document.getElementById('accesosSubHistorial'));
-    } catch(err) {
-        console.error(err);
-        alert('Error al eliminar registro');
-    }
-}
