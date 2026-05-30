@@ -52,7 +52,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.15';
+const APP_VERSION = 'v1.1.16';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -2986,7 +2986,7 @@ window.cargarHistorialReportes = async function() {
     
     try {
         const snap = await db.collection('informes_compartidos')
-            .where('obra', '==', session.obra)
+            .where('obra', '==', (typeof currentObra !== 'undefined' && currentObra ? currentObra.id : session.obra))
             .get();
             
         if(snap.empty) {
