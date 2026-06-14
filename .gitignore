@@ -1,0 +1,13 @@
+node_modules/
+functions/node_modules/
+manual_gen/node_modules/
+manual_gen/
+*.log
+firebase-debug.log
+firebase-debug.*.log
+bump_*.js
+fix_*.js
+add_*.js
+check_*.js
+fix_encoding.js
+.firebase/

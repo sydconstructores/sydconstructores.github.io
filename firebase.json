@@ -2,6 +2,34 @@
   "firestore": {
     "rules": "firestore.rules"
   },
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "firestore.rules",
+      "**/node_modules/**",
+      "**/functions/**",
+      "manual_gen/**",
+      "*.js",
+      "!js/**",
+      ".git/**",
+      "bump_*.js",
+      "fix_*.js",
+      "add_*.js",
+      "check_*.js"
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(js|css|html)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      }
+    ]
+  },
   "functions": [
     {
       "source": "functions",
