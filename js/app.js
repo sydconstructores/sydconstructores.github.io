@@ -52,7 +52,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.18';
+const APP_VERSION = 'v1.1.19';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -871,6 +871,56 @@ let session = null;   // { role, email }
 let TOTAL_WEEKS = 32;
 let currentWeek = 1;
 let currentTab = 'tareas';
+
+// Calcular semana automática basada en fecha de inicio de obra
+function calcularSemanaActual() {
+    if (!currentObra || !currentObra.fechaInicio) return null;
+    const inicio = new Date(currentObra.fechaInicio);
+    const hoy = new Date();
+    // Diferencia en milisegundos -> días -> semanas (redondeando hacia arriba)
+    const diffMs = hoy.getTime() - inicio.getTime();
+    if (diffMs < 0) return 1; // Aún no empieza
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const semana = Math.floor(diffDays / 7) + 1;
+    return Math.min(semana, TOTAL_WEEKS); // No exceder el total
+}
+
+// Guardar fecha de inicio en Firebase
+async function guardarFechaInicio(fecha) {
+    if (!db || !currentObra) return;
+    try {
+        await db.collection('obras').doc(currentObra.id).set({ fechaInicio: fecha }, { merge: true });
+        currentObra.fechaInicio = fecha;
+        const semanaCalc = calcularSemanaActual();
+        if (semanaCalc) {
+            currentWeek = semanaCalc;
+            updateDashboard();
+        }
+        console.log('[SYD] Fecha de inicio guardada:', fecha, '-> Semana', semanaCalc);
+    } catch(e) {
+        console.error('[SYD] Error guardando fecha de inicio:', e);
+        alert('Error al guardar la fecha: ' + e.message);
+    }
+}
+
+// Cargar fecha de inicio desde Firebase
+async function cargarFechaInicio() {
+    if (!db || !currentObra) return;
+    try {
+        const doc = await db.collection('obras').doc(currentObra.id).get();
+        if (doc.exists && doc.data().fechaInicio) {
+            currentObra.fechaInicio = doc.data().fechaInicio;
+            const semanaCalc = calcularSemanaActual();
+            if (semanaCalc) {
+                currentWeek = semanaCalc;
+                console.log('[SYD] Semana auto-calculada:', semanaCalc, 'desde', currentObra.fechaInicio);
+            }
+        }
+    } catch(e) {
+        console.warn('[SYD] No se pudo cargar fecha de inicio:', e.message);
+    }
+}
+
 let selectedRole = 'client';
 
 const ZONE_COLORS = ['#3b82f6','#f59e0b','#10b981','#8b5cf6','#ef4444','#ec4899','#06b6d4','#84cc16'];
@@ -2775,10 +2825,11 @@ let _uploadContext = null;
 function triggerFotoUpload(zIdx) {
     if(session.role !== 'master') return;
     const zona = projectData[zIdx];
+    const semanaReal = calcularSemanaActual() || currentWeek;
     _uploadContext = {
         zIdx,
-        semana: currentWeek,
-        tarea:  zona.tasks[currentWeek-1] || 'Tarea sem ' + currentWeek,
+        semana: semanaReal,
+        tarea:  zona.tasks[semanaReal-1] || 'Tarea sem ' + semanaReal,
         zona:   zona.zone
     };
     document.getElementById('fotoInput').click();
