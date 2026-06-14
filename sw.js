@@ -1,5 +1,5 @@
-// SYD Constructores — Service Worker v1.0.0
-const CACHE_NAME = 'syd-app-v1.1.19';
+// SYD Constructores — Service Worker v2.0.0
+const CACHE_NAME = 'syd-app-v1.1.20';
 
 const ASSETS = [
     './',
@@ -16,12 +16,19 @@ self.addEventListener('install', e => {
     self.skipWaiting();
 });
 
-// Activación: limpiar caches viejos
+// Activación: limpiar caches viejos y notificar a la app
 self.addEventListener('activate', e => {
     e.waitUntil(
         caches.keys().then(keys =>
             Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-        )
+        ).then(() => {
+            // Notificar a todas las pestañas que hay una nueva versión activa
+            self.clients.matchAll({ type: 'window' }).then(clients => {
+                clients.forEach(client => {
+                    client.postMessage({ type: 'SW_UPDATED', version: CACHE_NAME });
+                });
+            });
+        })
     );
     self.clients.claim();
 });
@@ -60,5 +67,3 @@ self.addEventListener('fetch', e => {
             .catch(() => caches.match(e.request))
     );
 });
-
-

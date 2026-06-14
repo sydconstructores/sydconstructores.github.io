@@ -52,7 +52,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.19';
+const APP_VERSION = 'v1.1.20';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -65,8 +65,94 @@ fillVersionBadges();
 
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js')
-        .then(() => console.log('[SYD] Service Worker registrado ✓'))
+        .then(reg => {
+            console.log('[SYD] Service Worker registrado ✓');
+            
+            // Revisar si hay una actualización esperando
+            if (reg.waiting) {
+                showUpdateBanner();
+            }
+            
+            // Escuchar cuando se descarga una nueva versión
+            reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                if (newWorker) {
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            showUpdateBanner();
+                        }
+                    });
+                }
+            });
+            
+            // Revisar actualizaciones cada 5 minutos
+            setInterval(() => { reg.update(); }, 5 * 60 * 1000);
+        })
         .catch(err => console.log('[SYD] Fallo SW:', err));
+    
+    // Escuchar mensajes del SW (cuando se activa una versión nueva)
+    navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data && event.data.type === 'SW_UPDATED') {
+            console.log('[SYD] Service Worker actualizado a:', event.data.version);
+            window.location.reload();
+        }
+    });
+}
+
+// Banner de actualización disponible
+function showUpdateBanner() {
+    if (document.getElementById('updateBanner')) return;
+    
+    const banner = document.createElement('div');
+    banner.id = 'updateBanner';
+    banner.style.cssText = `
+        position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+        z-index:999999; background:linear-gradient(135deg, #3b82f6, #2563eb);
+        color:#fff; padding:14px 24px; border-radius:16px;
+        box-shadow:0 8px 30px rgba(59,130,246,0.4);
+        display:flex; align-items:center; gap:12px;
+        font-family:inherit; font-size:0.85rem; font-weight:600;
+        animation: slideUp 0.4s ease-out;
+        max-width:90vw;
+    `;
+    banner.innerHTML = `
+        <span>🔄 Nueva versión disponible</span>
+        <button onclick="applyUpdate()" style="
+            background:#fff; color:#2563eb; border:none; padding:8px 16px;
+            border-radius:10px; font-weight:800; font-size:0.8rem;
+            cursor:pointer; white-space:nowrap;
+        ">Actualizar</button>
+        <button onclick="document.getElementById('updateBanner').remove()" style="
+            background:none; border:none; color:rgba(255,255,255,0.7);
+            font-size:1.2rem; cursor:pointer; padding:0 4px;
+        ">&times;</button>
+    `;
+    
+    if (!document.getElementById('updateBannerStyle')) {
+        const style = document.createElement('style');
+        style.id = 'updateBannerStyle';
+        style.textContent = `
+            @keyframes slideUp {
+                from { transform: translateX(-50%) translateY(100px); opacity:0; }
+                to { transform: translateX(-50%) translateY(0); opacity:1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(banner);
+}
+
+// Aplicar la actualización
+function applyUpdate() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistration().then(reg => {
+            if (reg && reg.waiting) {
+                reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
+        });
+    }
+    window.location.reload();
 }
 
 
