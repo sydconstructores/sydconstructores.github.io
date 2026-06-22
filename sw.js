@@ -1,5 +1,31 @@
-// SYD Constructores — Service Worker v2.0.0
-const CACHE_NAME = 'syd-app-v1.1.20';
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+    apiKey:            "AIzaSyBT6HgmdI2PQAKu7dlGzvNVFLSQnhNqLLc",
+    authDomain:        "syd-constructores.firebaseapp.com",
+    projectId:         "syd-constructores",
+    storageBucket:     "syd-constructores.firebasestorage.app",
+    messagingSenderId: "496488157373",
+    appId:             "1:496488157373:web:d2d13880031b05547c67d4"
+});
+
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  console.log('[sw.js] Mensaje recibido en background: ', payload);
+  const notificationTitle = payload.notification.title || 'Nueva Notificación de SYD';
+  const notificationOptions = {
+    body: payload.notification.body || 'Entra a la aplicación para ver los detalles.',
+    icon: './assets/icon-solid-192.png',
+    badge: './assets/icon-solid-192.png'
+  };
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// SYD Constructores — Service Worker v1.1.21
+const CACHE_NAME = 'syd-app-v1.1.21';
 
 const ASSETS = [
     './',
@@ -8,15 +34,20 @@ const ASSETS = [
     './assets/icon-solid-192.png'
 ];
 
-// Instalación: cachear recursos y activarse de inmediato
 self.addEventListener('install', e => {
     e.waitUntil(
         caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
     );
-    self.skipWaiting();
+    // IMPORTANTE: NO usamos self.skipWaiting() aquí. El usuario debe decidir actualizar.
 });
 
-// Activación: limpiar caches viejos y notificar a la app
+// Recibir mensaje para saltar la espera (cuando el usuario hace clic en "Actualizar")
+self.addEventListener('message', event => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+});
+
 self.addEventListener('activate', e => {
     e.waitUntil(
         caches.keys().then(keys =>
@@ -33,31 +64,19 @@ self.addEventListener('activate', e => {
     self.clients.claim();
 });
 
-// Fetch: primero red, si falla usa caché (solo GET y recursos HTTP/HTTPS locales)
 self.addEventListener('fetch', e => {
-    // Solo interceptar peticiones GET
-    if (e.request.method !== 'GET') {
-        return;
-    }
-
-    // Evitar cachear llamadas de otros protocolos (chrome-extension, etc.)
+    if (e.request.method !== 'GET') return;
     const url = new URL(e.request.url);
-    if (!url.protocol.startsWith('http')) {
-        return;
-    }
+    if (!url.protocol.startsWith('http')) return;
     
-    // Ignorar APIs externas dinámicas y Firebase Websockets/REST
     if (url.hostname.includes('firestore.googleapis.com') || 
         url.hostname.includes('generativelanguage.googleapis.com') ||
         url.hostname.includes('api.imgbb.com') ||
-        url.pathname.includes('/__/firebase/')) {
-        return;
-    }
+        url.pathname.includes('/__/firebase/')) return;
 
     e.respondWith(
         fetch(e.request)
             .then(resp => {
-                // Solo cachear respuestas válidas y exitosas del mismo origen
                 if (resp && resp.status === 200 && resp.type === 'basic') {
                     const clone = resp.clone();
                     caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));

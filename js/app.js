@@ -52,7 +52,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.20';
+const APP_VERSION = 'v1.1.21';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -149,10 +149,14 @@ function applyUpdate() {
         navigator.serviceWorker.getRegistration().then(reg => {
             if (reg && reg.waiting) {
                 reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            } else {
+                // Failsafe: Si no hay waiting pero el usuario vio el banner, forzamos recarga
+                window.location.reload(true);
             }
-        });
+        }).catch(() => window.location.reload(true));
+    } else {
+        window.location.reload(true);
     }
-    window.location.reload();
 }
 
 
@@ -183,7 +187,7 @@ async function checkNotificationState() {
 // Renovar token FCM sin molestar al usuario
 async function silentTokenRefresh() {
     try {
-        const swReg = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+        const swReg = await navigator.serviceWorker.ready;
         const messaging = firebase.messaging();
         const currentToken = await messaging.getToken({
             vapidKey: 'BP5uGPJZJZMo96OJrijWl6mik2e2gd7RmJnzD6VNqTbt6HEroOWDsVFjlrLsmYLGUGCmBKWPOeNMsr8zG1kWg_c',
@@ -214,7 +218,7 @@ async function requestPushPermission() {
         if (permission === 'granted') {
             console.log('[SYD] Permiso de notificación concedido.');
             
-            const swReg = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+            const swReg = await navigator.serviceWorker.ready;
             const messaging = firebase.messaging();
             const currentToken = await messaging.getToken({
                 vapidKey: 'BP5uGPJZJZMo96OJrijWl6mik2e2gd7RmJnzD6VNqTbt6HEroOWDsVFjlrLsmYLGUGCmBKWPOeNMsr8zG1kWg_c',
