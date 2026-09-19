@@ -237,7 +237,7 @@
                     <div style="font-size:1.1rem; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
                         <span>📋</span> Generador de Reporte Semanal
                     </div>
-                    <div style="font-size:0.75rem; color:rgba(255,255,255,0.6); margin-top:4px;"><span id="reportWeekLabel">Semana 1</span> · Acumula notas para el informe</div>
+                    <div style="font-size:0.75rem; color:rgba(255,255,255,0.6); margin-top:4px;"><span id="reportWeekLabel">Semana 1</span> · Acumula notas para el informe <span id="obraInicioLabel" style="margin-left:8px; cursor:pointer; color:#60a5fa; background:rgba(59,130,246,0.15); padding:2px 6px; border-radius:6px; font-weight:600; display:none;" onclick="promptCambiarFechaInicio()" title="Haz clic para modificar la fecha de inicio de obra">📅 Inicio: ...</span></div>
                 </div>
                 <div id="noteCounter" style="background:rgba(255,255,255,0.1); padding:4px 12px; border-radius:20px; font-size:0.7rem; font-weight:700;">0 notas</div>
             </div>
@@ -399,8 +399,9 @@
     <img id="lightboxImg" src="" alt="">
     <div id="lightboxCaption"></div>
 </div>
-<!-- Input oculto para subir fotos -->
+<!-- Input oculto para subir fotos (Cámara y Galería) -->
 <input type="file" id="fotoInput" accept="image/*" capture="environment" style="display:none" onchange="handleFotoSelected(event)">
+<input type="file" id="fotoGalleryInput" accept="image/*" multiple style="display:none" onchange="handleFotoSelected(event)">
 
 
 
@@ -486,8 +487,9 @@
     </div>
 </div>
 
+<script src="js/exif.min.js"></script>
 <script src="js/config.js"></script>
-<script src="js/app.js?v=v1.1.21"></script>
+<script src="js/app.js?v=v1.1.22"></script>
 </body>
 </html>
 

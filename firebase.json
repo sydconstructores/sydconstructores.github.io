@@ -12,6 +12,7 @@
       "manual_gen/**",
       "*.js",
       "!js/**",
+      "!sw.js",
       ".git/**",
       "bump_*.js",
       "fix_*.js",
