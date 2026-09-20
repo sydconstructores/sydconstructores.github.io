@@ -52,7 +52,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.23';
+const APP_VERSION = 'v1.1.24';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -3107,15 +3107,30 @@ function triggerFotoUpload(zIdx, mode = 'gallery') {
 }
 
 async function handleFotoSelected(e) {
-    const files = Array.from(e.target.files || []);
+    const rawFiles = Array.from(e.target.files || []);
     e.target.value = '';
-    if(!files.length || !_uploadContext) return;
+    if(!rawFiles.length || !_uploadContext) return;
+
+    // 1. Filtrar duplicados dentro del mismo lote seleccionado
+    const files = [];
+    const seenBatch = new Set();
+    let batchDupCount = 0;
+    for (const f of rawFiles) {
+        const key = `${f.name}_${f.size}_${f.lastModified}`;
+        if (!seenBatch.has(key)) {
+            seenBatch.add(key);
+            files.push(f);
+        } else {
+            batchDupCount++;
+        }
+    }
 
     const ctx = _uploadContext;
     const progEl = document.getElementById('up-prog-' + ctx.zIdx);
     if(progEl) { progEl.style.display='block'; progEl.textContent='⏳ Analizando ' + files.length + ' foto(s)...'; }
 
     let successCount = 0;
+    let duplicateCount = batchDupCount;
     const semanasModificadas = new Set();
 
     for (let i = 0; i < files.length; i++) {
@@ -3124,10 +3139,25 @@ async function handleFotoSelected(e) {
         try {
             if(progEl) progEl.textContent = `⏳ [${fileNum}/${files.length}] Leyendo fecha de la foto...`;
             
-            // 1. Obtener fecha de la foto (EXIF o fecha de archivo)
+            // 2. Obtener fecha de la foto (EXIF o fecha de archivo)
             const fechaTomada = await obtenerFechaFoto(file);
+            const fingerprint = `${fechaTomada.getTime()}_${file.size}`;
+
+            // 3. Comprobar si ya existe en la base de datos de esta obra
+            if (db) {
+                const obraDoc = session.obra || 'SAUCES';
+                const dupCheck = await db.collection('obras').doc(obraDoc)
+                    .collection('fotos')
+                    .where('fingerprint', '==', fingerprint)
+                    .limit(1).get();
+                if (!dupCheck.empty) {
+                    console.log('[SYD] Foto duplicada detectada y omitida:', file.name);
+                    duplicateCount++;
+                    continue;
+                }
+            }
             
-            // 2. Calcular automáticamente la semana de trabajo
+            // 4. Calcular automáticamente la semana de trabajo
             const semanaAsignada = calcularSemanaDeFecha(fechaTomada);
             semanasModificadas.add(semanaAsignada);
             
@@ -3137,7 +3167,7 @@ async function handleFotoSelected(e) {
 
             if(progEl) progEl.textContent = `⏳ [${fileNum}/${files.length}] Sem ${semanaAsignada} (${fechaStr}) · Comprimiendo...`;
 
-            // 3. Compresión optimizada para PDF (800px, 0.6 quality)
+            // 5. Compresión optimizada para PDF (800px, 0.6 quality)
             const base64 = await imageToBase64(file, 800, 0.6);
             if(progEl) progEl.textContent = `⏳ [${fileNum}/${files.length}] Sem ${semanaAsignada} · Subiendo a nube...`;
 
@@ -3166,6 +3196,7 @@ async function handleFotoSelected(e) {
                         url,
                         thumb,
                         type:          'image',
+                        fingerprint,
                         subidoPor:     session.email,
                         timestamp:     firebase.firestore.FieldValue.serverTimestamp(),
                         fechaTomada:   fechaTomada.toISOString(),
@@ -3184,9 +3215,11 @@ async function handleFotoSelected(e) {
     if(progEl) {
         if (successCount === 1) {
             const semArr = Array.from(semanasModificadas);
-            progEl.innerHTML = `✅ Foto asignada a <b>Semana ${semArr[0]}</b>`;
+            progEl.innerHTML = `✅ Foto asignada a <b>Semana ${semArr[0]}</b>${duplicateCount > 0 ? ' (1 repetida omitida)' : ''}`;
         } else if (successCount > 1) {
-            progEl.innerHTML = `✅ ${successCount} fotos asignadas a sus semanas`;
+            progEl.innerHTML = `✅ ${successCount} fotos subidas${duplicateCount > 0 ? ` (${duplicateCount} repetidas omitidas)` : ''}`;
+        } else if (duplicateCount > 0) {
+            progEl.innerHTML = `ℹ️ ${duplicateCount} foto(s) ya existían previamente (omitidas)`;
         }
         setTimeout(()=>{ if(progEl) progEl.style.display='none'; }, 4000);
     }
@@ -3200,6 +3233,8 @@ async function handleFotoSelected(e) {
     if (otrasSemanas.length > 0) {
         const plural = otrasSemanas.length > 1 ? 'las semanas' : 'la semana';
         alert(`📅 ${successCount} foto(s) asignada(s) automáticamente según su fecha a ${plural} ${otrasSemanas.join(', ')}.`);
+    } else if (successCount === 0 && duplicateCount > 0) {
+        alert(`ℹ️ La(s) foto(s) seleccionada(s) ya habían sido subidas anteriormente en esta obra. No se crearon duplicados.`);
     }
 }
 
