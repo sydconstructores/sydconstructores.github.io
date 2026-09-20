@@ -52,7 +52,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.22';
+const APP_VERSION = 'v1.1.23';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -1121,12 +1121,36 @@ async function cargarFechaInicio() {
     }
 }
 
-// Control UI para Master ver/modificar fecha de inicio de obra
+// Control UI para ver/modificar fecha de inicio de obra
 function actualizarLabelFechaInicio() {
     const lbl = document.getElementById('obraInicioLabel');
+    const headerVal = document.getElementById('headerFechaInicioVal');
+    const headerWrap = document.getElementById('headerFechaInicio');
+
+    let fechaLegible = '';
+    if (currentObra && currentObra.fechaInicio) {
+        const p = currentObra.fechaInicio.split(/[:\-\/]/).map(Number);
+        if (p.length === 3) {
+            const d = new Date(p[0], p[1] - 1, p[2]);
+            fechaLegible = d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+        } else {
+            fechaLegible = currentObra.fechaInicio;
+        }
+    }
+
     if (lbl && currentObra) {
         lbl.style.display = (session && session.role === 'master') ? 'inline-block' : 'none';
         lbl.textContent = currentObra.fechaInicio ? `📅 Inicio: ${currentObra.fechaInicio}` : '📅 Configurar inicio';
+    }
+
+    if (headerWrap && currentObra) {
+        headerWrap.style.display = 'flex';
+        if (headerVal) {
+            const isMaster = session && session.role === 'master';
+            headerVal.innerHTML = currentObra.fechaInicio 
+                ? `${fechaLegible} <span style="opacity:0.7;font-weight:normal">(${currentObra.fechaInicio})</span>${isMaster ? ' ✏️' : ''}` 
+                : (isMaster ? 'Definir fecha ✏️' : 'Sin definir');
+        }
     }
 }
 

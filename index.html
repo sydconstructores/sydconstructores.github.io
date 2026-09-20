@@ -168,6 +168,11 @@
             <div style="flex: 1;">
                 <div class="app-title">🏗 SYD Constructores</div>
                 <div class="app-subtitle" id="appSubtitle">Sistema de Gestión de Obras <span class="version-auto"></span></div>
+                <div id="headerFechaInicio" style="font-size:0.7rem; color:#93c5fd; margin-top:5px; display:none; align-items:center; gap:4px; cursor:pointer;" onclick="if(session && session.role==='master') promptCambiarFechaInicio()" title="Fecha oficial de inicio de obra">
+                    <span style="background:rgba(59,130,246,0.15); padding:3px 8px; border-radius:10px; border:1px solid rgba(59,130,246,0.3); font-weight:600; display:inline-flex; align-items:center; gap:4px;">
+                        📅 Inicio de obra: <strong id="headerFechaInicioVal" style="color:#fff;">--</strong>
+                    </span>
+                </div>
             </div>
             <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                 <span class="role-badge" id="clientEmailBadge" style="display:none;background:rgba(255,255,255,0.1);color:#cbd5e1;font-weight:normal;text-transform:lowercase;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
@@ -489,7 +494,7 @@
 
 <script src="js/exif.min.js"></script>
 <script src="js/config.js"></script>
-<script src="js/app.js?v=v1.1.22"></script>
+<script src="js/app.js?v=v1.1.23"></script>
 </body>
 </html>
 

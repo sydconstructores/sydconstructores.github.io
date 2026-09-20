@@ -24,8 +24,8 @@ messaging.onBackgroundMessage((payload) => {
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// SYD Constructores — Service Worker v1.1.22
-const CACHE_NAME = 'syd-app-v1.1.22';
+// SYD Constructores — Service Worker v1.1.23
+const CACHE_NAME = 'syd-app-v1.1.23';
 
 const ASSETS = [
     './',
