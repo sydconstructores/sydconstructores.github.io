@@ -24,14 +24,15 @@ messaging.onBackgroundMessage((payload) => {
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// SYD Constructores — Service Worker v1.1.21
-const CACHE_NAME = 'syd-app-v1.1.21';
+// SYD Constructores — Service Worker v1.1.24
+const CACHE_NAME = 'syd-app-v1.1.24';
 
 const ASSETS = [
     './',
     './index.html',
     './manifest.json',
-    './assets/icon-solid-192.png'
+    './assets/icon-solid-192.png',
+    './js/exif.min.js'
 ];
 
 self.addEventListener('install', e => {

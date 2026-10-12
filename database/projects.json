@@ -6,7 +6,8 @@
     "img": "obras/sauces/portada.jpg",
     "status": "activa",
     "dataFile": "obras/sauces/data.json",
-    "totalSemanas": 20
+    "totalSemanas": 20,
+    "fechaInicio": "2026-03-02"
   },
   {
     "id": "arauca182",

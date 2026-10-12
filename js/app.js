@@ -52,7 +52,7 @@ window.addEventListener('appinstalled', () => {
 
 
 // SERVICE WORKER & UPDATES
-const APP_VERSION = 'v1.1.21';
+const APP_VERSION = 'v1.1.24';
 
 // Auto-fill all version placeholders
 function fillVersionBadges() {
@@ -904,6 +904,8 @@ async function loadProjectData(obraId) {
         currentObra = obra;
         currentObra.documentos = data.documentos || [];
         TOTAL_WEEKS = currentObra.totalSemanas || 32;
+        if (data.fechaInicio) currentObra.fechaInicio = data.fechaInicio;
+        if (obra.fechaInicio) currentObra.fechaInicio = obra.fechaInicio;
         return true;
     } catch(e) {
         console.error('[SYD] Error cargando datos de obra:', e);
@@ -962,17 +964,125 @@ let TOTAL_WEEKS = 32;
 let currentWeek = 1;
 let currentTab = 'tareas';
 
-// Calcular semana automática basada en fecha de inicio de obra
+// Helper para parsear fechas string de forma robusta
+function parseFechaSegura(fechaStr) {
+    if (!fechaStr) return null;
+    if (fechaStr instanceof Date) return isNaN(fechaStr.getTime()) ? null : fechaStr;
+    if (typeof fechaStr === 'string') {
+        const clean = fechaStr.trim();
+        const m = clean.match(/^(\d{4})[:\-\/](\d{1,2})[:\-\/](\d{1,2})/);
+        if (m) {
+            const y = parseInt(m[1], 10);
+            const mo = parseInt(m[2], 10) - 1;
+            const d = parseInt(m[3], 10);
+            return new Date(y, mo, d);
+        }
+        const dObj = new Date(clean);
+        if (!isNaN(dObj.getTime())) return dObj;
+    }
+    return null;
+}
+
+// Calcular semana automática basada en fecha de inicio de obra y fecha actual
 function calcularSemanaActual() {
     if (!currentObra || !currentObra.fechaInicio) return null;
-    const inicio = new Date(currentObra.fechaInicio);
-    const hoy = new Date();
-    // Diferencia en milisegundos -> días -> semanas (redondeando hacia arriba)
-    const diffMs = hoy.getTime() - inicio.getTime();
-    if (diffMs < 0) return 1; // Aún no empieza
+    return calcularSemanaDeFecha(new Date());
+}
+
+// Calcular la semana de trabajo exacta en la que se tomó una fecha dada
+function calcularSemanaDeFecha(targetDate) {
+    if (!targetDate) return currentWeek;
+    const fFotoObj = (targetDate instanceof Date) ? targetDate : parseFechaSegura(targetDate);
+    if (!fFotoObj || isNaN(fFotoObj.getTime())) return currentWeek;
+
+    if (!currentObra || !currentObra.fechaInicio) {
+        return currentWeek;
+    }
+
+    const inicio = parseFechaSegura(currentObra.fechaInicio);
+    if (!inicio || isNaN(inicio.getTime())) {
+        return currentWeek;
+    }
+
+    // Normalizar a medianoche local para cálculo preciso de días naturales
+    const fInicio = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate());
+    const fFoto = new Date(fFotoObj.getFullYear(), fFotoObj.getMonth(), fFotoObj.getDate());
+
+    const diffMs = fFoto.getTime() - fInicio.getTime();
+    if (diffMs < 0) {
+        // Foto tomada antes del inicio oficial -> Asignar a semana 1
+        return 1;
+    }
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const semana = Math.floor(diffDays / 7) + 1;
-    return Math.min(semana, TOTAL_WEEKS); // No exceder el total
+    const maxWeeks = currentObra.totalSemanas || TOTAL_WEEKS || 32;
+    return Math.min(Math.max(1, semana), maxWeeks);
+}
+
+// Parser específico para cadenas de fecha EXIF ("YYYY:MM:DD HH:MM:SS")
+function parseExifDate(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return null;
+    const cleanStr = dateStr.trim();
+    const match = cleanStr.match(/^(\d{4})[:\-\/](\d{2})[:\-\/](\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?/);
+    if (match) {
+        const year = parseInt(match[1], 10);
+        const month = parseInt(match[2], 10) - 1;
+        const day = parseInt(match[3], 10);
+        const hour = match[4] !== undefined ? parseInt(match[4], 10) : 12;
+        const minute = match[5] !== undefined ? parseInt(match[5], 10) : 0;
+        const second = match[6] !== undefined ? parseInt(match[6], 10) : 0;
+        const d = new Date(year, month, day, hour, minute, second);
+        if (!isNaN(d.getTime())) return d;
+    }
+    const dFallback = new Date(cleanStr);
+    if (!isNaN(dFallback.getTime())) return dFallback;
+    return null;
+}
+
+// Extrae la fecha real en que fue tomada la foto (EXIF con fallback a lastModified del archivo)
+function obtenerFechaFoto(file) {
+    return new Promise((resolve) => {
+        if (!file) {
+            resolve(new Date());
+            return;
+        }
+
+        const fallbackDate = () => {
+            if (file.lastModified) {
+                const lm = new Date(file.lastModified);
+                if (!isNaN(lm.getTime())) return lm;
+            }
+            return new Date();
+        };
+
+        if (typeof EXIF !== 'undefined' && EXIF.getData) {
+            try {
+                EXIF.getData(file, function() {
+                    try {
+                        const dtOrig = EXIF.getTag(this, "DateTimeOriginal") 
+                                    || EXIF.getTag(this, "DateTime") 
+                                    || EXIF.getTag(this, "DateTimeDigitized");
+                        const parsed = parseExifDate(dtOrig);
+                        if (parsed) {
+                            console.log('[SYD] Fecha detectada desde EXIF:', dtOrig, '->', parsed);
+                            resolve(parsed);
+                            return;
+                        }
+                    } catch (exifErr) {
+                        console.warn('[SYD] Error leyendo tag EXIF:', exifErr);
+                    }
+                    const fb = fallbackDate();
+                    console.log('[SYD] Sin fecha EXIF, usando fallback:', fb);
+                    resolve(fb);
+                });
+            } catch (err) {
+                console.warn('[SYD] Error en EXIF.getData:', err);
+                resolve(fallbackDate());
+            }
+        } else {
+            resolve(fallbackDate());
+        }
+    });
 }
 
 // Guardar fecha de inicio en Firebase
@@ -1008,6 +1118,58 @@ async function cargarFechaInicio() {
         }
     } catch(e) {
         console.warn('[SYD] No se pudo cargar fecha de inicio:', e.message);
+    }
+}
+
+// Control UI para ver/modificar fecha de inicio de obra
+function actualizarLabelFechaInicio() {
+    const lbl = document.getElementById('obraInicioLabel');
+    const headerVal = document.getElementById('headerFechaInicioVal');
+    const headerWrap = document.getElementById('headerFechaInicio');
+
+    let fechaLegible = '';
+    if (currentObra && currentObra.fechaInicio) {
+        const p = currentObra.fechaInicio.split(/[:\-\/]/).map(Number);
+        if (p.length === 3) {
+            const d = new Date(p[0], p[1] - 1, p[2]);
+            fechaLegible = d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+        } else {
+            fechaLegible = currentObra.fechaInicio;
+        }
+    }
+
+    if (lbl && currentObra) {
+        lbl.style.display = (session && session.role === 'master') ? 'inline-block' : 'none';
+        lbl.textContent = currentObra.fechaInicio ? `📅 Inicio: ${currentObra.fechaInicio}` : '📅 Configurar inicio';
+    }
+
+    if (headerWrap && currentObra) {
+        headerWrap.style.display = 'flex';
+        if (headerVal) {
+            const isMaster = session && session.role === 'master';
+            headerVal.innerHTML = currentObra.fechaInicio 
+                ? `${fechaLegible} <span style="opacity:0.7;font-weight:normal">(${currentObra.fechaInicio})</span>${isMaster ? ' ✏️' : ''}` 
+                : (isMaster ? 'Definir fecha ✏️' : 'Sin definir');
+        }
+    }
+}
+
+async function promptCambiarFechaInicio() {
+    if (!session || session.role !== 'master') return;
+    const actual = currentObra?.fechaInicio || '';
+    const nueva = prompt('Fecha de inicio de obra (AAAA-MM-DD):', actual);
+    if (nueva === null) return;
+    const match = nueva.trim().match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})$/);
+    if (match) {
+        const y = match[1];
+        const m = match[2].padStart(2, '0');
+        const d = match[3].padStart(2, '0');
+        const iso = `${y}-${m}-${d}`;
+        await guardarFechaInicio(iso);
+        actualizarLabelFechaInicio();
+        alert(`✅ Fecha de inicio actualizada a: ${iso}\nSemana actual calculada: Sem ${calcularSemanaActual() || 1}`);
+    } else {
+        alert('⚠️ Formato de fecha no válido. Por favor usa el formato AAAA-MM-DD (ejemplo: 2026-03-02)');
     }
 }
 
@@ -1242,7 +1404,7 @@ function doLogout() {
 // ══════════════════════════════════════
 // APP LAUNCH
 // ══════════════════════════════════════
-function launchApp() {
+async function launchApp() {
     // master/observer without currentObra → go to selector
     if((session.role==='master' || session.role==='observer') && !currentObra) {
         if(session.obra) {
@@ -1252,6 +1414,15 @@ function launchApp() {
         }
     }
     if(!currentObra) currentObra = OBRAS_CATALOG[0];
+
+    // Cargar fecha de inicio desde Firebase si existe
+    if (typeof cargarFechaInicio === 'function') {
+        try {
+            await cargarFechaInicio();
+        } catch(e) {
+            console.warn('[SYD] Error al cargar fecha de inicio en launchApp:', e);
+        }
+    }
 
     document.getElementById('loginScreen').style.display    = 'none';
     document.getElementById('obraSelector').style.display  = 'none';
@@ -1363,6 +1534,7 @@ function updateDashboard() {
     document.getElementById('weekBadge').textContent = `Sem ${currentWeek}`;
     const reportWeekLabel = document.getElementById('reportWeekLabel');
     if (reportWeekLabel) reportWeekLabel.textContent = `Semana ${currentWeek}`;
+    if (typeof actualizarLabelFechaInicio === 'function') actualizarLabelFechaInicio();
     updateWeekDots();
     updateGantt();
     if(currentTab==='tareas') renderTareas();
@@ -1440,7 +1612,10 @@ function renderTareas() {
                </div>`
             : ``;
         const uploadHtml = canEdit
-            ? `<button class="btn-upload-foto" onclick="triggerFotoUpload(${idx})">📷 + Foto</button>
+            ? `<div style="display:flex;gap:6px;margin-top:10px;">
+                 <button class="btn-upload-foto" style="margin-top:0;flex:1;" onclick="triggerFotoUpload(${idx}, 'camera')">📷 Cámara</button>
+                 <button class="btn-upload-foto" style="margin-top:0;flex:1;background:rgba(59,130,246,0.12);border-color:rgba(96,165,250,0.5);color:#93c5fd;" onclick="triggerFotoUpload(${idx}, 'gallery')">🖼️ Galería</button>
+               </div>
                <div class="upload-progress" id="up-prog-${idx}"></div>`
             : '';
         html+=`
@@ -2912,7 +3087,7 @@ const IMGBB_API_KEY = 'ef497f7df24480c5df8656ba07fea071';
 
 let _uploadContext = null;
 
-function triggerFotoUpload(zIdx) {
+function triggerFotoUpload(zIdx, mode = 'gallery') {
     if(session.role !== 'master') return;
     const zona = projectData[zIdx];
     const semanaReal = calcularSemanaActual() || currentWeek;
@@ -2922,61 +3097,144 @@ function triggerFotoUpload(zIdx) {
         tarea:  zona.tasks[semanaReal-1] || 'Tarea sem ' + semanaReal,
         zona:   zona.zone
     };
-    document.getElementById('fotoInput').click();
+    if (mode === 'camera') {
+        const camInput = document.getElementById('fotoInput');
+        if (camInput) camInput.click();
+    } else {
+        const galInput = document.getElementById('fotoGalleryInput') || document.getElementById('fotoInput');
+        if (galInput) galInput.click();
+    }
 }
 
 async function handleFotoSelected(e) {
-    const file = e.target.files[0];
+    const rawFiles = Array.from(e.target.files || []);
     e.target.value = '';
-    if(!file || !_uploadContext) return;
+    if(!rawFiles.length || !_uploadContext) return;
+
+    // 1. Filtrar duplicados dentro del mismo lote seleccionado
+    const files = [];
+    const seenBatch = new Set();
+    let batchDupCount = 0;
+    for (const f of rawFiles) {
+        const key = `${f.name}_${f.size}_${f.lastModified}`;
+        if (!seenBatch.has(key)) {
+            seenBatch.add(key);
+            files.push(f);
+        } else {
+            batchDupCount++;
+        }
+    }
 
     const ctx = _uploadContext;
     const progEl = document.getElementById('up-prog-' + ctx.zIdx);
-    if(progEl) { progEl.style.display='block'; progEl.textContent='⏳ Procesando imagen...'; }
+    if(progEl) { progEl.style.display='block'; progEl.textContent='⏳ Analizando ' + files.length + ' foto(s)...'; }
 
-    try {
-        // Compresión optimizada para PDF (800px, 0.6 quality)
-        const base64 = await imageToBase64(file, 800, 0.6);
-        if(progEl) progEl.textContent = '⏳ Subiendo a ImgBB...';
+    let successCount = 0;
+    let duplicateCount = batchDupCount;
+    const semanasModificadas = new Set();
 
-        const formData = new FormData();
-        formData.append('key', IMGBB_API_KEY);
-        formData.append('image', base64);
-        formData.append('name', `SYD_z${ctx.zIdx}_s${ctx.semana}_${Date.now()}`);
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileNum = i + 1;
+        try {
+            if(progEl) progEl.textContent = `⏳ [${fileNum}/${files.length}] Leyendo fecha de la foto...`;
+            
+            // 2. Obtener fecha de la foto (EXIF o fecha de archivo)
+            const fechaTomada = await obtenerFechaFoto(file);
+            const fingerprint = `${fechaTomada.getTime()}_${file.size}`;
 
-        const resp = await fetch('https://api.imgbb.com/1/upload', {
-            method: 'POST', body: formData
-        });
-        const result = await resp.json();
+            // 3. Comprobar si ya existe en la base de datos de esta obra
+            if (db) {
+                const obraDoc = session.obra || 'SAUCES';
+                const dupCheck = await db.collection('obras').doc(obraDoc)
+                    .collection('fotos')
+                    .where('fingerprint', '==', fingerprint)
+                    .limit(1).get();
+                if (!dupCheck.empty) {
+                    console.log('[SYD] Foto duplicada detectada y omitida:', file.name);
+                    duplicateCount++;
+                    continue;
+                }
+            }
+            
+            // 4. Calcular automáticamente la semana de trabajo
+            const semanaAsignada = calcularSemanaDeFecha(fechaTomada);
+            semanasModificadas.add(semanaAsignada);
+            
+            const zona = projectData[ctx.zIdx];
+            const tareaAsignada = zona?.tasks[semanaAsignada - 1] || ('Tarea sem ' + semanaAsignada);
+            const fechaStr = fechaTomada.toLocaleDateString('es-MX', { year:'numeric', month:'short', day:'numeric' });
 
-        if(!result.success) throw new Error(result.error?.message || 'Error ImgBB');
+            if(progEl) progEl.textContent = `⏳ [${fileNum}/${files.length}] Sem ${semanaAsignada} (${fechaStr}) · Comprimiendo...`;
 
-        const url = result.data.display_url;
-        const thumb = result.data.thumb?.url || url;
+            // 5. Compresión optimizada para PDF (800px, 0.6 quality)
+            const base64 = await imageToBase64(file, 800, 0.6);
+            if(progEl) progEl.textContent = `⏳ [${fileNum}/${files.length}] Sem ${semanaAsignada} · Subiendo a nube...`;
 
-        if(db) {
-            await db.collection('obras').doc(session.obra || 'SAUCES')
-                .collection('fotos').add({
-                    zona:      ctx.zona,
-                    zona_idx:  ctx.zIdx,
-                    semana:    ctx.semana,
-                    tarea:     ctx.tarea,
-                    url,
-                    thumb,
-                    type:      'image',
-                    subidoPor: session.email,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    fecha:     new Date().toLocaleDateString('es-MX'),
-                    hora:      new Date().toLocaleTimeString('es-MX')
-                });
+            const formData = new FormData();
+            formData.append('key', IMGBB_API_KEY);
+            formData.append('image', base64);
+            formData.append('name', `SYD_z${ctx.zIdx}_s${semanaAsignada}_${Date.now()}`);
+
+            const resp = await fetch('https://api.imgbb.com/1/upload', {
+                method: 'POST', body: formData
+            });
+            const result = await resp.json();
+
+            if(!result.success) throw new Error(result.error?.message || 'Error ImgBB');
+
+            const url = result.data.display_url;
+            const thumb = result.data.thumb?.url || url;
+
+            if(db) {
+                await db.collection('obras').doc(session.obra || 'SAUCES')
+                    .collection('fotos').add({
+                        zona:          ctx.zona,
+                        zona_idx:      ctx.zIdx,
+                        semana:        semanaAsignada,
+                        tarea:         tareaAsignada,
+                        url,
+                        thumb,
+                        type:          'image',
+                        fingerprint,
+                        subidoPor:     session.email,
+                        timestamp:     firebase.firestore.FieldValue.serverTimestamp(),
+                        fechaTomada:   fechaTomada.toISOString(),
+                        fechaTomadaStr: fechaStr,
+                        fecha:         new Date().toLocaleDateString('es-MX'),
+                        hora:          new Date().toLocaleTimeString('es-MX')
+                    });
+            }
+            successCount++;
+        } catch(err) {
+            console.error('[SYD] Error subiendo foto:', err);
+            if(progEl) progEl.textContent = `⚠️ Error en foto ${fileNum}: ${err.message}`;
         }
-        if(progEl) { progEl.textContent='✅ Foto subida'; setTimeout(()=>{ progEl.style.display='none'; },2500); }
-        loadFotosGallery(ctx.zIdx, ctx.semana, 'gallery-' + ctx.zIdx);
-        loadFotosGallery(ctx.zIdx, ctx.semana, 'dgallery-' + ctx.zIdx);
+    }
 
-    } catch(err) {
-        if(progEl) { progEl.textContent='❌ Error: ' + err.message; }
-        console.error('ImgBB upload error:', err);
+    if(progEl) {
+        if (successCount === 1) {
+            const semArr = Array.from(semanasModificadas);
+            progEl.innerHTML = `✅ Foto asignada a <b>Semana ${semArr[0]}</b>${duplicateCount > 0 ? ' (1 repetida omitida)' : ''}`;
+        } else if (successCount > 1) {
+            progEl.innerHTML = `✅ ${successCount} fotos subidas${duplicateCount > 0 ? ` (${duplicateCount} repetidas omitidas)` : ''}`;
+        } else if (duplicateCount > 0) {
+            progEl.innerHTML = `ℹ️ ${duplicateCount} foto(s) ya existían previamente (omitidas)`;
+        }
+        setTimeout(()=>{ if(progEl) progEl.style.display='none'; }, 4000);
+    }
+
+    // Refrescar galerías
+    loadFotosGallery(ctx.zIdx, currentWeek, 'gallery-' + ctx.zIdx);
+    loadFotosGallery(ctx.zIdx, currentWeek, 'dgallery-' + ctx.zIdx);
+
+    // Si las fotos se asignaron a semanas diferentes a la actual, notificar
+    const otrasSemanas = Array.from(semanasModificadas).filter(s => s !== currentWeek);
+    if (otrasSemanas.length > 0) {
+        const plural = otrasSemanas.length > 1 ? 'las semanas' : 'la semana';
+        alert(`📅 ${successCount} foto(s) asignada(s) automáticamente según su fecha a ${plural} ${otrasSemanas.join(', ')}.`);
+    } else if (successCount === 0 && duplicateCount > 0) {
+        alert(`ℹ️ La(s) foto(s) seleccionada(s) ya habían sido subidas anteriormente en esta obra. No se crearon duplicados.`);
     }
 }
 
@@ -3021,7 +3279,8 @@ function loadFotosGallery(zIdx, semana, containerId, filterByWeek = false) {
                 docs.forEach(docData => {
                     const d = docData.data;
                     const thumbSrc = d.thumb || d.url;
-                    const caption = `${d.zona} · Sem ${d.semana} · ${d.tarea||''}`;
+                    const fechaTexto = d.fechaTomadaStr ? ` (${d.fechaTomadaStr})` : '';
+                    const caption = `${d.zona} · Sem ${d.semana}${fechaTexto} · ${d.tarea||''}`;
                     
                     html += `
                         <div style="position:relative; display:inline-block; margin-right:8px; margin-bottom:8px;">

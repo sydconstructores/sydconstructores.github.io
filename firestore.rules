@@ -27,5 +27,15 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if true;
     }
+    
+    // ══ INFORMES ══
+    match /informes_compartidos/{informeId} {
+      allow read, write: if true;
+    }
+
+    // ══ CONFIGURACION ══
+    match /config/{configId} {
+      allow read, write: if true;
+    }
   }
 }
